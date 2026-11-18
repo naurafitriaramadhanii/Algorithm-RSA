@@ -219,21 +219,27 @@ div[data-testid="collapsedControl"] { display: none !important; }
     background: var(--choc); border: 4px solid var(--choc-dark);
     outline: 3px dashed #c9a27a; outline-offset: -11px;
     border-radius: 26px; padding: 12px 34px 10px; text-align: center;
-    box-shadow: 0 6px 0 rgba(75,45,32,.55); min-width: 300px;
+    box-shadow: 0 6px 0 rgba(75,45,32,.55); min-width: 380px;
 }
-.welcome-badge .t { font-family: 'Itim', cursive; font-size: 2rem; color: #ffe9bd; line-height: 1.05; }
-.welcome-badge .s { font-size: .9rem; color: #fbe3bd; }
+.welcome-badge .t { font-family: 'Itim', cursive; font-size: 2rem; color: #ffffff; line-height: 1.05; }
+.welcome-badge .s { font-size: 1rem; color: #ffffff; font-weight: 600; }
 
 /* ===== Tab (st.tabs) ===== */
 div[data-baseweb="tab-list"] {
-    background: var(--cream); border: 3px dashed #cdbd98; border-bottom: 0;
-    border-radius: 26px 26px 0 0; padding: 10px 22px 0; gap: 22px; width: fit-content;
+    background: var(--choc); border: 3px solid var(--choc-dark); border-bottom: 0;
+    border-radius: 26px 26px 0 0; padding: 12px 28px 0; gap: 30px; width: fit-content;
     max-width: 100%; margin-top: 8px;
 }
-button[data-baseweb="tab"] { background: transparent !important; padding: 0 4px 8px; height: auto; }
-button[data-baseweb="tab"] p { font-family: 'Itim', cursive; font-size: 1.4rem; color: var(--milk); }
-button[data-baseweb="tab"][aria-selected="true"] p { color: var(--choc); }
-div[data-baseweb="tab-highlight"] { background: var(--leaf) !important; height: 4px !important; }
+button[data-baseweb="tab"] { background: transparent !important; padding: 0 6px 10px; height: auto; }
+button[data-baseweb="tab"] p,
+button[data-baseweb="tab"] div[data-testid="stMarkdownContainer"] p {
+    font-family: 'Itim', cursive; font-size: 1.9rem !important; color: #f1e3c8 !important;
+}
+button[data-baseweb="tab"][aria-selected="true"] p,
+button[data-baseweb="tab"][aria-selected="true"] div[data-testid="stMarkdownContainer"] p {
+    color: #ffffff !important;
+}
+div[data-baseweb="tab-highlight"] { background: var(--leaf) !important; height: 5px !important; }
 div[data-baseweb="tab-border"] { display: none; }
 div[data-baseweb="tab-panel"] { padding-top: 0 !important; }
 
@@ -355,7 +361,7 @@ div[data-baseweb="input"] input, div[data-baseweb="textarea"] textarea {
 }
 div[data-testid="stNumberInput"] button { color: var(--choc) !important; background: transparent !important; }
 .stApp label p { color: var(--ink); font-weight: 600; }
-div[data-testid="stCaptionContainer"] p { color: #8a6a55; }
+div[data-testid="stCaptionContainer"] p { color: #4b2d20 !important; font-weight: 600; }
 
 /* ===== Tombol ala "Button" cokelat ===== */
 div.stButton > button {
@@ -386,8 +392,11 @@ div[data-testid="stAlert"] { border-radius: 18px; }
 }
 
 @media (max-width: 640px) {
-    .welcome-badge { min-width: 220px; padding: 10px 18px 8px; }
+    .welcome-badge { min-width: 250px; padding: 10px 18px 8px; }
     .welcome-badge .t { font-size: 1.5rem; }
+    .welcome-badge .s { font-size: .85rem; }
+    button[data-baseweb="tab"] p { font-size: 1.3rem !important; }
+    div[data-baseweb="tab-list"] { gap: 14px; padding: 10px 14px 0; }
     .band .dot-circle { display: none; }
     .band .sub { max-width: 100%; }
     .band .ttl { font-size: 1.8rem; }
@@ -777,7 +786,7 @@ st.markdown(
 <div class="welcome-wrap">
   <div class="welcome-badge">
     <div class="t">Selamat Datang!</div>
-    <div class="s">Kalkulator RSA &#9834;(&acute;&nabla;&#96;)</div>
+    <div class="s">Kalkulator Jova, Ais, dan Naura &#9834;(&acute;&nabla;&#96;)</div>
   </div>
 </div>
 """,
