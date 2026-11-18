@@ -237,21 +237,23 @@ div[data-baseweb="tab-list"] {
     border-radius: 26px 26px 0 0; padding: 14px 34px 0; gap: 40px; width: fit-content;
     max-width: 100%; margin-top: 8px;
 }
-button[data-baseweb="tab"] { background: transparent !important; padding: 4px 10px 14px; height: auto; }
-button[data-baseweb="tab"],
-button[data-baseweb="tab"] *,
-button[data-baseweb="tab"] p,
-button[data-baseweb="tab"] span,
-button[data-baseweb="tab"] div[data-testid="stMarkdownContainer"] p {
-    font-family: 'Itim', cursive !important; font-size: 3.1rem !important;
-    color: #fdf4de !important; line-height: 1.2 !important; margin: 0;
+.stApp .stTabs button[role="tab"],
+.stApp .stTabs button[data-baseweb="tab"] {
+    background: transparent !important; padding: 6px 14px 16px !important; height: auto !important;
+    opacity: 1 !important;
 }
-button[data-baseweb="tab"] { opacity: .7; }
-button[data-baseweb="tab"][aria-selected="true"] {
-    opacity: 1;
+.stApp .stTabs button[role="tab"] *,
+.stApp .stTabs button[data-baseweb="tab"] *,
+.stApp .stTabs button[role="tab"] p,
+.stApp .stTabs button[role="tab"] span,
+.stApp .stTabs button[role="tab"] div[data-testid="stMarkdownContainer"] p {
+    font-family: 'Itim', cursive !important; font-size: 3.4rem !important;
+    color: #fdf4de !important; -webkit-text-fill-color: #fdf4de !important;
+    line-height: 1.2 !important; margin: 0 !important; opacity: 1 !important;
     text-shadow: 0 2px 0 rgba(0,0,0,.4);
 }
-div[data-baseweb="tab-highlight"] { background-color: #9bb05a !important; height: 7px !important; }
+.stApp .stTabs button[role="tab"][aria-selected="false"] * { opacity: .85 !important; }
+div[data-baseweb="tab-highlight"] { background-color: #9bb05a !important; height: 8px !important; }
 div[data-baseweb="tab-border"] { display: none; }
 div[data-baseweb="tab-panel"] { padding-top: 0 !important; }
 
@@ -415,7 +417,7 @@ div[data-testid="stAlert"] { border-radius: 18px; }
     .welcome-badge { min-width: 270px; padding: 10px 16px 8px; top: -92px; }
     .welcome-badge .t { font-size: 1.6rem; }
     .welcome-badge .s { font-size: .85rem; }
-    button[data-baseweb="tab"] p { font-size: 1.7rem !important; }
+    .stApp .stTabs button[role="tab"] *, .stApp .stTabs button[role="tab"] p { font-size: 2rem !important; }
     div[data-baseweb="tab-list"] { gap: 14px; padding: 10px 14px 0; }
     .band .dot-circle { display: none; }
     .band .sub { max-width: 100%; }
@@ -829,8 +831,3 @@ with tab_info:
     st.markdown(BAND_HTML, unsafe_allow_html=True)
     with st.container(border=True):
         page_tentang()
-
-st.markdown(
-    '<div class="footer-strip">Kelompok: Jovani (009) &middot; Wafiq (028) &middot; Naura (037)</div>',
-    unsafe_allow_html=True,
-)
