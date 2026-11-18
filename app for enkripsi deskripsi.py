@@ -231,27 +231,46 @@ div[data-testid="collapsedControl"] { display: none !important; }
     text-shadow: 0 1px 0 rgba(0,0,0,.35);
 }
 
-/* ===== Tab (st.tabs): kotak jelas, tulisan CREAM besar ===== */
+/* ===== Tab (st.tabs): kotak jelas, tulisan CREAM besar =====
+   Selector dibuat selengkap mungkin agar cocok di semua versi Streamlit. */
+[data-testid="stTabs"] [role="tablist"],
+.stTabs [role="tablist"],
 div[data-baseweb="tab-list"] {
-    background: transparent; border: 0; border-radius: 0;
-    padding: 14px 0 0; gap: 16px; width: 100%; max-width: 100%;
-    margin-top: 8px; flex-wrap: wrap;
+    background: transparent !important; border: 0 !important; border-bottom: 0 !important;
+    box-shadow: none !important; border-radius: 0 !important;
+    padding: 14px 0 6px !important; gap: 16px !important; width: 100% !important;
+    max-width: 100% !important; margin-top: 8px !important; flex-wrap: wrap !important;
 }
+html body [data-testid="stTabs"] button,
+html body .stTabs button,
+html body [data-testid="stTab"],
 html body button[role="tab"],
+html body [role="tab"],
 html body button[data-baseweb="tab"] {
-    background: var(--choc-dark) !important;      /* kotak cokelat tua */
-    border: 4px solid var(--cream) !important;    /* garis kotak cream */
+    background: #4b2d20 !important;               /* kotak cokelat tua */
+    background-color: #4b2d20 !important;
+    border: 4px solid #fdf4de !important;         /* garis kotak cream */
     border-radius: 18px !important;
-    padding: 8px 28px 10px !important; height: auto !important;
+    padding: 8px 28px 10px !important; height: auto !important; min-height: 0 !important;
     opacity: 1 !important;
-    box-shadow: 0 5px 0 rgba(0,0,0,.45);
+    box-shadow: 0 5px 0 rgba(0,0,0,.45) !important;
     transition: background .12s, transform .12s;
 }
-html body button[role="tab"]:hover {
-    background: var(--choc) !important; transform: translateY(-2px);
+html body [data-testid="stTabs"] button:hover,
+html body .stTabs button:hover,
+html body button[role="tab"]:hover,
+html body [role="tab"]:hover {
+    background: #6a4332 !important; background-color: #6a4332 !important;
+    transform: translateY(-2px);
 }
+html body [data-testid="stTabs"] button *,
+html body .stTabs button *,
+html body [data-testid="stTab"] *,
 html body button[role="tab"] *,
+html body [role="tab"] *,
 html body button[data-baseweb="tab"] *,
+html body [data-testid="stTabs"] button p,
+html body .stTabs button p,
 html body button[role="tab"] p,
 html body button[role="tab"] span,
 html body button[role="tab"] div[data-testid="stMarkdownContainer"] p {
@@ -263,17 +282,36 @@ html body button[role="tab"] div[data-testid="stMarkdownContainer"] p {
     text-shadow: 0 2px 0 rgba(0,0,0,.5) !important;
 }
 /* tab yang sedang dipilih: kotak hijau + garis cream lebih tebal */
-html body button[role="tab"][aria-selected="true"] {
-    background: var(--leaf-dark) !important;
+html body [data-testid="stTabs"] button[aria-selected="true"],
+html body .stTabs button[aria-selected="true"],
+html body [data-testid="stTab"][aria-selected="true"],
+html body button[role="tab"][aria-selected="true"],
+html body [role="tab"][aria-selected="true"] {
+    background: #5f7330 !important; background-color: #5f7330 !important;
     border-color: #fffaf0 !important;
     border-width: 5px !important;
-    box-shadow: 0 5px 0 #44541f;
+    box-shadow: 0 5px 0 #44541f !important;
+}
+html body [data-testid="stTabs"] button[aria-selected="true"] *,
+html body .stTabs button[aria-selected="true"] *,
+html body button[role="tab"][aria-selected="true"] *,
+html body [role="tab"][aria-selected="true"] * {
+    color: #fdf4de !important; -webkit-text-fill-color: #fdf4de !important;
 }
 /* hilangkan garis merah/abu-abu di bawah tab */
 div[data-baseweb="tab-highlight"],
 div[data-baseweb="tab-border"],
-html body div[data-baseweb="tab-list"]::after { display: none !important; }
-div[data-baseweb="tab-panel"] { padding-top: 0 !important; }
+[data-testid="stTabs"] [role="tablist"]::after,
+[data-testid="stTabs"] [role="tablist"]::before,
+.stTabs [role="tablist"]::after,
+.stTabs [role="tablist"]::before,
+div[data-baseweb="tab-list"]::after,
+div[data-baseweb="tab-list"]::before { display: none !important; content: none !important; }
+[data-testid="stTabs"] > div:first-child,
+.stTabs > div:first-child { border-bottom: 0 !important; box-shadow: none !important; }
+div[data-baseweb="tab-panel"],
+[data-testid="stTabs"] [role="tabpanel"],
+.stTabs [role="tabpanel"] { padding-top: 0 !important; }
 
 /* ===== Radio pill umum (pilihan blok) ===== */
 div[role="radiogroup"] { gap: 8px; }
@@ -435,9 +473,12 @@ div[data-testid="stAlert"] { border-radius: 18px; }
     .welcome-badge { min-width: 270px; padding: 10px 16px 8px; top: -92px; }
     .welcome-badge .t { font-size: 1.6rem; }
     .welcome-badge .s { font-size: .85rem; }
-    html body button[role="tab"] *, html body button[role="tab"] p { font-size: 1.8rem !important; }
-    html body button[role="tab"] { padding: 4px 14px 8px !important; }
-    div[data-baseweb="tab-list"] { gap: 8px; padding: 10px 0 0; }
+    html body [data-testid="stTabs"] button *, html body .stTabs button *,
+    html body button[role="tab"] *, html body [role="tab"] * { font-size: 1.8rem !important; }
+    html body [data-testid="stTabs"] button, html body .stTabs button,
+    html body button[role="tab"], html body [role="tab"] { padding: 4px 14px 8px !important; }
+    [data-testid="stTabs"] [role="tablist"], .stTabs [role="tablist"],
+    div[data-baseweb="tab-list"] { gap: 8px !important; padding: 10px 0 0 !important; }
     .band .dot-circle { display: none; }
     .band .sub { max-width: 100%; }
     .band .ttl { font-size: 1.8rem; }
