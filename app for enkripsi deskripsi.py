@@ -237,18 +237,21 @@ div[data-baseweb="tab-list"] {
     border-radius: 26px 26px 0 0; padding: 14px 34px 0; gap: 40px; width: fit-content;
     max-width: 100%; margin-top: 8px;
 }
-button[data-baseweb="tab"] { background: transparent !important; padding: 0 8px 12px; height: auto; }
+button[data-baseweb="tab"] { background: transparent !important; padding: 4px 10px 14px; height: auto; }
+button[data-baseweb="tab"],
+button[data-baseweb="tab"] *,
 button[data-baseweb="tab"] p,
+button[data-baseweb="tab"] span,
 button[data-baseweb="tab"] div[data-testid="stMarkdownContainer"] p {
-    font-family: 'Itim', cursive; font-size: 2.6rem !important; color: #ffffff !important;
-    opacity: .75; line-height: 1.2; margin: 0;
+    font-family: 'Itim', cursive !important; font-size: 3.1rem !important;
+    color: #fdf4de !important; line-height: 1.2 !important; margin: 0;
 }
-button[data-baseweb="tab"][aria-selected="true"] p,
-button[data-baseweb="tab"][aria-selected="true"] div[data-testid="stMarkdownContainer"] p {
-    color: #ffffff !important; opacity: 1;
-    text-shadow: 0 2px 0 rgba(0,0,0,.35);
+button[data-baseweb="tab"] { opacity: .7; }
+button[data-baseweb="tab"][aria-selected="true"] {
+    opacity: 1;
+    text-shadow: 0 2px 0 rgba(0,0,0,.4);
 }
-div[data-baseweb="tab-highlight"] { background: var(--leaf) !important; height: 6px !important; }
+div[data-baseweb="tab-highlight"] { background-color: #9bb05a !important; height: 7px !important; }
 div[data-baseweb="tab-border"] { display: none; }
 div[data-baseweb="tab-panel"] { padding-top: 0 !important; }
 
@@ -259,11 +262,11 @@ div[role="radiogroup"] label {
     border-radius: 999px; padding: 2px 16px; margin: 0;
 }
 div[role="radiogroup"] label > div:first-child { display: none; }
-div[role="radiogroup"] label p { color: var(--ink); margin: 0; font-weight: 700; }
+div[role="radiogroup"] label p { color: var(--ink) !important; margin: 0; font-weight: 700; }
 div[role="radiogroup"] label:has(input:checked) {
     background: var(--choc); border-color: var(--choc-dark);
 }
-div[role="radiogroup"] label:has(input:checked) p { color: #ffffff; }
+div[role="radiogroup"] label:has(input:checked) p { color: #fdf4de !important; }
 
 /* ===== Pita header "home + about" ===== */
 .band {
@@ -305,8 +308,8 @@ div[data-testid="stVerticalBlockBorderWrapper"] div[data-testid="stVerticalBlock
 /* ===== Judul seksi: lingkaran hijau + garis putus ===== */
 .section-title {
     display: flex; align-items: center; gap: 10px; width: 100%;
-    font-family: 'Itim', cursive; font-size: 1.65rem; color: var(--ink);
-    border-bottom: 2px dashed #b9a770; padding-bottom: 6px; margin: 14px 0 10px;
+    font-family: 'Itim', cursive; font-size: 1.75rem; color: #fdf4de;
+    border-bottom: 2px dashed #e8d9b4; padding-bottom: 6px; margin: 14px 0 10px;
 }
 .section-title::before {
     content: "✿"; width: 34px; height: 34px; border-radius: 50%;
@@ -372,8 +375,12 @@ div[data-baseweb="input"] input, div[data-baseweb="textarea"] textarea {
     color: var(--ink) !important; font-family: 'Mali', sans-serif; font-weight: 600;
 }
 div[data-testid="stNumberInput"] button { color: var(--choc) !important; background: transparent !important; }
-.stApp label p { color: var(--ink); font-weight: 700; }
-div[data-testid="stCaptionContainer"] p { color: var(--ink) !important; font-weight: 600; }
+[data-testid="stWidgetLabel"],
+[data-testid="stWidgetLabel"] *,
+[data-testid="stWidgetLabel"] label p { color: #fdf4de !important; font-weight: 700; }
+div[data-testid="stCaptionContainer"],
+div[data-testid="stCaptionContainer"] *,
+div[data-testid="stCaptionContainer"] p { color: #fdf4de !important; font-weight: 600; }
 
 /* ===== Tombol ala "Button" cokelat ===== */
 div.stButton > button {
