@@ -1,5 +1,6 @@
 """
 Kalkulator RSA (input p dan q manual) - versi Streamlit
+Tampilan: kartu kafe ala "carrd" (cokelat bergaris, kanopi, tab, pita header).
 Memakai kode ASCII (0-127) untuk tiap karakter pesan.
 Kode ASCII ditulis 3 digit, disambung, lalu dipisah menjadi blok k digit
 (k bisa dipilih: 2, 3, dst.) dan tiap blok diproses dengan RSA.
@@ -146,86 +147,254 @@ def decrypt_blocks(cipher, d, n, k):
 
 
 # ---------------- Tampilan ----------------
-# Palet: Bow #7E2625, Warm Wood #3C1B0F, Candle #F1ECDB, Leaf #868859, Juniper #292F17
-st.set_page_config(page_title="Kalkulator RSA", layout="centered")
+# Palet kafe: cokelat tua, cokelat susu, krim, kuning mentega, hijau daun
+st.set_page_config(
+    page_title="Kalkulator RSA",
+    page_icon="🥐",
+    layout="centered",
+    initial_sidebar_state="collapsed",
+)
 
 st.markdown(
     """
 <style>
+@import url('https://fonts.googleapis.com/css2?family=Itim&family=Mali:wght@400;600;700&display=swap');
+
 :root {
-    --bow: #7E2625; --wood: #3C1B0F; --candle: #F1ECDB;
-    --leaf: #868859; --juniper: #292F17;
+    --choc: #6a4332;        /* cokelat tua (frame, tombol) */
+    --choc-dark: #4b2d20;   /* garis tepi */
+    --milk: #b08a5b;        /* cokelat susu */
+    --cream: #fdf4de;       /* krim panel */
+    --butter: #f6e4b0;      /* kuning mentega (kartu) */
+    --butter-edge: #d9b878;
+    --leaf: #9bb05a;        /* hijau daun */
+    --leaf-dark: #6f8438;
+    --paper: #fffaf0;
+    --ink: #5a3a2a;
 }
-.stApp { background: var(--candle); color: var(--wood); }
-h1, h2, h3, label, p { color: var(--wood); }
 
-/* Sidebar */
-section[data-testid="stSidebar"] { background: var(--juniper); }
-section[data-testid="stSidebar"] * { color: var(--candle) !important; }
-.side-title { font-size: 1.3rem; font-weight: 800; margin-bottom: 2px; }
-.side-sub { font-size: .9rem; opacity: .85; margin-bottom: 14px; }
-
-/* Welcome */
-.hero {
-    background: linear-gradient(120deg, var(--juniper), var(--wood) 55%, var(--bow));
-    padding: 38px 24px; border-radius: 20px; color: var(--candle); text-align: center;
-    box-shadow: 0 10px 26px rgba(60, 27, 15, .35); margin-bottom: 18px;
-    border-bottom: 6px solid var(--leaf);
+/* ===== Latar halaman: kotak-kotak krim ===== */
+.stApp {
+    background-color: #f3ead0;
+    background-image:
+        repeating-linear-gradient(0deg, rgba(190,175,120,.22) 0 22px, transparent 22px 44px),
+        repeating-linear-gradient(90deg, rgba(190,175,120,.22) 0 22px, transparent 22px 44px);
+    font-family: 'Mali', 'Trebuchet MS', sans-serif;
+    color: var(--ink);
 }
-.hero .welcome { margin: 0 0 4px; font-size: 1rem; letter-spacing: 3px;
-    text-transform: uppercase; opacity: .85; color: var(--candle); }
-.hero h1 { margin: 0; font-size: 2.6rem; color: var(--candle); }
-.hero p  { margin: 8px 0 0; opacity: .95; font-size: 1.05rem; color: var(--candle); }
+header[data-testid="stHeader"], footer, #MainMenu,
+section[data-testid="stSidebar"], div[data-testid="stSidebarCollapsedControl"],
+div[data-testid="collapsedControl"] { display: none !important; }
 
+/* ===== Frame cokelat bergaris ===== */
+.block-container, div[data-testid="stMainBlockContainer"] {
+    max-width: 800px;
+    margin: 28px auto;
+    padding: 0 26px 26px !important;
+    background: repeating-linear-gradient(90deg, #6d4735 0 4px, #5f3d2d 4px 8px);
+    border: 10px solid var(--choc-dark);
+    border-radius: 42px;
+    box-shadow: 0 0 0 4px #fdf4de, 0 14px 30px rgba(75,45,32,.35);
+    overflow: hidden;
+}
+.stApp h1, .stApp h2, .stApp h3, .stApp p, .stApp label, .stApp span, .stApp li {
+    font-family: 'Mali', sans-serif;
+}
+
+/* ===== Kanopi + badge Welcome ===== */
+.awning {
+    display: flex; gap: 0; margin: 0 -26px; height: 78px;
+    border-bottom: 6px solid var(--choc-dark);
+    background: var(--choc-dark);
+}
+.awning span {
+    flex: 1; height: 72px; border-radius: 0 0 30px 30px;
+    border: 3px solid var(--choc-dark); border-top: 0;
+}
+.awning span:nth-child(odd)  { background: #fdebc8; }
+.awning span:nth-child(even) { background: var(--leaf); }
+.welcome-wrap { height: 0; position: relative; z-index: 5; }
+.welcome-badge {
+    position: absolute; left: 50%; top: -92px; transform: translateX(-50%);
+    background: var(--choc); border: 4px solid var(--choc-dark);
+    outline: 3px dashed #c9a27a; outline-offset: -11px;
+    border-radius: 26px; padding: 12px 34px 10px; text-align: center;
+    box-shadow: 0 6px 0 rgba(75,45,32,.55); min-width: 300px;
+}
+.welcome-badge .t { font-family: 'Itim', cursive; font-size: 2rem; color: #ffe9bd; line-height: 1.05; }
+.welcome-badge .s { font-size: .9rem; color: #fbe3bd; }
+
+/* ===== Tab navigasi (radio horizontal) ===== */
+.st-key-nav { margin-top: 6px; }
+.st-key-nav div[role="radiogroup"] {
+    background: var(--cream); border: 3px dashed #cdbd98; border-bottom: 0;
+    border-radius: 26px 26px 0 0; padding: 12px 22px 8px; gap: 22px; width: fit-content;
+    margin-bottom: -22px; position: relative; z-index: 2;
+}
+.st-key-nav div[role="radiogroup"] label {
+    background: transparent !important; border: 0 !important; box-shadow: none !important;
+    padding: 0 4px !important; border-radius: 0 !important;
+}
+.st-key-nav div[role="radiogroup"] label p {
+    font-family: 'Itim', cursive; font-size: 1.45rem; color: var(--milk);
+}
+.st-key-nav div[role="radiogroup"] label:has(input:checked) p { color: var(--choc); }
+.st-key-nav div[role="radiogroup"] label:has(input:checked) { border-bottom: 4px solid var(--leaf) !important; }
+
+/* ===== Radio pill umum (pilihan blok) ===== */
+div[role="radiogroup"] { gap: 8px; }
+div[role="radiogroup"] label {
+    background: var(--butter); border: 2px solid var(--butter-edge);
+    border-radius: 999px; padding: 2px 16px; margin: 0;
+}
+div[role="radiogroup"] label > div:first-child { display: none; }
+div[role="radiogroup"] label p { color: var(--ink); margin: 0; }
+div[role="radiogroup"] label:has(input:checked) {
+    background: var(--choc); border-color: var(--choc-dark);
+}
+div[role="radiogroup"] label:has(input:checked) p { color: #ffe9bd; }
+
+/* ===== Pita header "home + about" ===== */
+.band {
+    position: relative; margin-top: 0; margin-bottom: -1rem;
+    background: repeating-linear-gradient(135deg, #6a4332 0 14px, #61402f 14px 28px);
+    border: 4px solid #fffaf0; border-bottom: 0;
+    border-radius: 26px 26px 0 0; padding: 20px 28px 22px; color: #ffe9bd;
+    box-shadow: 0 0 0 3px #e8d9b4;
+}
+.band .ttl { font-family: 'Itim', cursive; font-size: 2.3rem; color: #fff6e0; line-height: 1.1; }
+.band .sub { font-size: .92rem; color: #fbe3bd; margin: 2px 0 12px; max-width: 70%; }
+.pills { display: flex; gap: 12px; flex-wrap: wrap; }
+.pill {
+    background: var(--cream); color: var(--ink); border: 3px solid var(--choc-dark);
+    border-radius: 999px; padding: 3px 20px; font-size: .88rem; font-weight: 600;
+    box-shadow: inset 0 -3px 0 rgba(176,138,91,.35);
+}
+.band .dot-circle {
+    position: absolute; right: 26px; top: 18px; width: 98px; height: 98px;
+    border-radius: 50%; border: 6px solid #fffaf0;
+    background: radial-gradient(circle, #f2d7b8 22%, transparent 24%) 0 0/16px 16px, #ecc9a6;
+    display: flex; align-items: center; justify-content: center; font-size: 2.4rem;
+    box-shadow: 0 3px 0 rgba(0,0,0,.18);
+}
+
+/* ===== Panel isi (container border) ===== */
+div[data-testid="stVerticalBlockBorderWrapper"] {
+    background: var(--cream); border: 4px solid #fffaf0 !important; border-top: 0 !important;
+    border-radius: 0 0 26px 26px !important; padding: 18px 16px 14px !important;
+    box-shadow: 0 0 0 3px #e8d9b4;
+}
+div[data-testid="stVerticalBlockBorderWrapper"] div[data-testid="stVerticalBlockBorderWrapper"] {
+    box-shadow: none;
+}
+
+/* ===== Judul seksi: lingkaran hijau + garis putus ===== */
 .section-title {
-    display: inline-block; background: var(--juniper); color: var(--candle);
-    padding: 6px 16px; border-radius: 999px; font-weight: 700;
-    box-shadow: 0 3px 10px rgba(41, 47, 23, .25); margin: 14px 0 8px;
+    display: flex; align-items: center; gap: 10px; width: 100%;
+    font-family: 'Itim', cursive; font-size: 1.55rem; color: var(--ink);
+    border-bottom: 2px dashed #d8c89f; padding-bottom: 6px; margin: 14px 0 10px;
 }
+.section-title::before {
+    content: "✿"; width: 34px; height: 34px; border-radius: 50%;
+    background: var(--leaf); color: #fff; display: inline-flex;
+    align-items: center; justify-content: center; font-size: 1.05rem;
+    box-shadow: 0 2px 0 var(--leaf-dark);
+}
+
+/* ===== Kartu kunci ===== */
 .key-card {
-    border-radius: 16px; padding: 16px 18px; color: var(--candle);
-    box-shadow: 0 6px 16px rgba(60, 27, 15, .22); margin-bottom: 10px;
+    border-radius: 20px; padding: 14px 20px; color: #fff6e0; margin-bottom: 10px;
+    border: 3px solid var(--choc-dark); box-shadow: 0 5px 0 rgba(75,45,32,.35);
 }
-.key-card .label { font-size: .85rem; opacity: .9; letter-spacing: .5px; }
-.key-card .value { font-size: 1.15rem; font-weight: 700; word-break: break-all; }
-.k-pub { background: var(--juniper); }
-.k-prv { background: var(--bow); }
-.step {
-    background: #fffdf6; border-left: 8px solid var(--leaf); border-radius: 12px;
-    padding: 12px 16px; margin: 10px 0; color: var(--wood);
-    box-shadow: 0 4px 14px rgba(60, 27, 15, .10);
+.key-card .label { font-size: .85rem; opacity: .92; }
+.key-card .value { font-family: 'Itim', cursive; font-size: 1.4rem; word-break: break-all; }
+.k-pub { background: var(--leaf-dark); }
+.k-prv { background: var(--choc); }
+
+/* ===== Kartu langkah / hasil (gaya balon kuning) ===== */
+.step, .result-box {
+    background: var(--butter); color: var(--ink);
+    border: 2px solid var(--butter-edge); border-radius: 22px 22px 22px 8px;
+    padding: 12px 18px; margin: 12px 0; position: relative;
+    box-shadow: 3px 4px 0 var(--butter-edge);
 }
-.step.s2 { border-left-color: var(--bow); }
-.step.s3 { border-left-color: var(--juniper); }
-.step.s4 { border-left-color: var(--wood); }
-.step .st-title { font-weight: 700; color: var(--juniper); margin-bottom: 4px; }
-.step .st-calc { font-family: monospace; font-size: 1.02rem; word-break: break-all; }
-.step .st-note { font-size: .9rem; opacity: .85; margin-top: 4px; }
-.step .ok { color: var(--juniper); font-weight: 700; }
-.result-box {
-    background: #fffdf6; border-left: 8px solid var(--bow); border-radius: 12px;
-    padding: 14px 16px; color: var(--wood); word-break: break-all;
-    box-shadow: 0 4px 14px rgba(60, 27, 15, .12); margin-top: 8px;
+.step.s2 { background: #fbeec8; }
+.step.s3 { background: #eef0c9; border-color: #c4cc84; box-shadow: 3px 4px 0 #c4cc84; }
+.step.s4 { background: #fde6cf; border-color: #e1b58a; box-shadow: 3px 4px 0 #e1b58a; }
+.step .st-title, .result-title {
+    font-family: 'Itim', cursive; font-size: 1.15rem; color: var(--choc); margin-bottom: 4px;
 }
-.result-box.dec { border-left-color: var(--leaf); }
-.result-title { font-weight: 700; margin-bottom: 4px; color: var(--bow); }
-.result-box.dec .result-title { color: var(--juniper); }
-.tbl-wrap { max-height: 300px; overflow-y: auto; margin-top: 10px; border-radius: 12px;
-    box-shadow: 0 4px 14px rgba(60, 27, 15, .12); }
-table.steps { width: 100%; border-collapse: collapse; background: #fffdf6; }
-table.steps th { background: var(--juniper); color: var(--candle); padding: 8px 10px;
-    position: sticky; top: 0; text-align: center; }
-table.steps td { padding: 6px 10px; text-align: center; color: var(--wood);
-    border-bottom: 1px solid #e3dcc3; font-family: monospace; }
-table.steps tr:nth-child(even) td { background: #f6f1e0; }
+.step .st-calc { font-family: 'Courier New', monospace; font-size: 1rem; word-break: break-all; }
+.step .st-note { font-size: .88rem; opacity: .85; margin-top: 4px; }
+.step .ok { color: var(--leaf-dark); font-weight: 700; }
+.result-box { word-break: break-all; background: #fffaf0; border-color: var(--milk); box-shadow: 3px 4px 0 var(--milk); }
+.result-box.dec { background: #f1f4d6; border-color: var(--leaf); box-shadow: 3px 4px 0 var(--leaf); }
+.result-box.dec .result-title { color: var(--leaf-dark); }
+
+/* ===== Tabel ===== */
+.tbl-wrap {
+    max-height: 300px; overflow-y: auto; margin-top: 10px; border-radius: 16px;
+    border: 3px solid var(--choc-dark); box-shadow: 0 4px 0 rgba(75,45,32,.25);
+}
+table.steps { width: 100%; border-collapse: collapse; background: var(--paper); }
+table.steps th {
+    background: var(--choc); color: #ffe9bd; padding: 8px 10px; position: sticky; top: 0;
+    text-align: center; font-family: 'Itim', cursive; font-weight: 400;
+}
+table.steps td {
+    padding: 6px 10px; text-align: center; color: var(--ink);
+    border-bottom: 1px dashed #dccfa6; font-family: 'Courier New', monospace;
+}
+table.steps tr:nth-child(even) td { background: #fbf0d3; }
+
+/* ===== Input ===== */
+div[data-baseweb="input"], div[data-baseweb="textarea"], div[data-baseweb="base-input"] {
+    background: var(--paper) !important; border-radius: 16px !important;
+}
+div[data-baseweb="input"], div[data-baseweb="textarea"] {
+    border: 2px solid var(--butter-edge) !important;
+}
+div[data-baseweb="input"] input, div[data-baseweb="textarea"] textarea {
+    color: var(--ink) !important; font-family: 'Mali', sans-serif;
+}
+div[data-testid="stNumberInput"] button { color: var(--choc) !important; background: transparent !important; }
+.stApp label p { color: var(--ink); font-weight: 600; }
+div[data-testid="stCaptionContainer"] p { color: #8a6a55; }
+
+/* ===== Tombol ala "Button" cokelat ===== */
 div.stButton > button {
-    background: var(--bow); color: var(--candle); border: 2px solid var(--wood);
-    border-radius: 12px; padding: 8px 26px; font-weight: 700;
-    box-shadow: 0 5px 12px rgba(126, 38, 37, .35); transition: transform .15s;
+    background: var(--choc); color: #fff3d6; border: 3px solid var(--choc-dark);
+    border-radius: 18px; padding: 8px 34px; font-family: 'Itim', cursive; font-size: 1.2rem;
+    box-shadow: 0 5px 0 var(--choc-dark); transition: transform .12s, box-shadow .12s;
 }
 div.stButton > button:hover {
-    transform: translateY(-2px); background: var(--wood); color: var(--candle);
-    border-color: var(--leaf);
+    transform: translateY(-2px); box-shadow: 0 7px 0 var(--choc-dark);
+    background: var(--milk); color: #fff; border-color: var(--choc-dark);
+}
+div.stButton > button:active { transform: translateY(3px); box-shadow: 0 2px 0 var(--choc-dark); }
+
+/* ===== Expander ===== */
+div[data-testid="stExpander"] details {
+    background: var(--paper); border: 2px dashed var(--milk); border-radius: 18px;
+}
+div[data-testid="stExpander"] summary p { color: var(--choc); font-weight: 700; }
+
+/* ===== Alert ===== */
+div[data-testid="stAlert"] { border-radius: 18px; }
+
+/* ===== Footer strip ===== */
+.footer-strip {
+    margin-top: 6px; padding: 14px; text-align: center; color: #fff3d6; font-size: .95rem;
+    background: repeating-linear-gradient(135deg, #6a4332 0 14px, #61402f 14px 28px);
+    border: 4px solid #fffaf0; border-radius: 18px; box-shadow: 0 0 0 3px #e8d9b4;
+}
+
+@media (max-width: 640px) {
+    .welcome-badge { min-width: 220px; padding: 10px 18px 8px; }
+    .welcome-badge .t { font-size: 1.5rem; }
+    .band .dot-circle { display: none; }
+    .band .sub { max-width: 100%; }
+    .band .ttl { font-size: 1.8rem; }
 }
 </style>
 """,
@@ -518,25 +687,95 @@ def page_dekripsi():
         st.markdown(result_box("Pesan asli (Plaintext)", plain_out, "dec"), unsafe_allow_html=True)
 
 
-# ---------------- Sidebar + Welcome ----------------
-with st.sidebar:
-    st.markdown('<div class="side-title">Kalkulator RSA</div>'
-                '<div class="side-sub">Pilih mode yang ingin dipakai</div>',
-                unsafe_allow_html=True)
-    mode = st.radio("Mode", ["Enkripsi", "Dekripsi"], label_visibility="collapsed")
+# ---------------- Halaman Tentang ----------------
+def page_tentang():
+    section("Cara kerja")
+    st.markdown(
+        step_box(
+            "1. Pesan menjadi angka",
+            "Tiap karakter diubah ke kode ASCII 3 digit, lalu semua digit disambung.",
+        ),
+        unsafe_allow_html=True,
+    )
+    st.markdown(
+        step_box(
+            "2. Angka dipecah menjadi blok",
+            "Digit dipotong per k digit. Nilai blok terbesar harus lebih kecil dari n.",
+            css="s2",
+        ),
+        unsafe_allow_html=True,
+    )
+    st.markdown(
+        step_box(
+            "3. Tiap blok dienkripsi",
+            "c = m<sup>e</sup> mod n dengan kunci publik (e, n). "
+            "Dekripsi memakai m = c<sup>d</sup> mod n dengan kunci privat (d, n).",
+            css="s3",
+        ),
+        unsafe_allow_html=True,
+    )
+    st.caption("Untuk belajar saja. Jangan dipakai untuk mengamankan data sungguhan.")
 
+
+# ---------------- Rangka halaman ----------------
+PAGES = {
+    "enkripsi": ("👤 Enkripsi", "Enkripsi", "Ubah pesan jadi ciphertext dengan kunci publik."),
+    "dekripsi": ("ℹ️ Dekripsi", "Dekripsi", "Kembalikan ciphertext jadi pesan dengan kunci privat."),
+    "tentang": ("☰ Tentang", "Tentang", "Ringkasan cara kerja kalkulator ini."),
+}
+
+# Kanopi + badge Welcome
 st.markdown(
     """
-<div class="hero">
-    <div class="welcome">Selamat Datang di</div>
-    <h1>Kalkulator RSA</h1>
-    <p>Enkripsi dan dekripsi pesan dengan kode <b>ASCII</b> &middot; p dan q kamu tentukan sendiri</p>
+<div class="awning"><span></span><span></span><span></span><span></span>
+<span></span><span></span><span></span><span></span></div>
+<div class="welcome-wrap">
+  <div class="welcome-badge">
+    <div class="t">Selamat Datang!</div>
+    <div class="s">Kalkulator RSA &#9834;(&acute;&nabla;&#96;)</div>
+  </div>
 </div>
 """,
     unsafe_allow_html=True,
 )
 
-if mode == "Enkripsi":
-    page_enkripsi()
-else:
-    page_dekripsi()
+# Tab navigasi
+page = st.radio(
+    "Menu",
+    list(PAGES.keys()),
+    horizontal=True,
+    format_func=lambda x: PAGES[x][0],
+    label_visibility="collapsed",
+    key="nav",
+)
+_, page_name, page_sub = PAGES[page]
+
+# Pita header
+st.markdown(
+    f"""
+<div class="band">
+  <div class="ttl">&epsilon; {page_name} &#1079;</div>
+  <div class="sub">{page_sub} Kode ASCII, p dan q kamu tentukan sendiri.</div>
+  <div class="pills">
+    <span class="pill">status: OPEN</span>
+    <span class="pill">mode: {page_name}</span>
+  </div>
+  <div class="dot-circle">🔐</div>
+</div>
+""",
+    unsafe_allow_html=True,
+)
+
+# Panel isi
+with st.container(border=True):
+    if page == "enkripsi":
+        page_enkripsi()
+    elif page == "dekripsi":
+        page_dekripsi()
+    else:
+        page_tentang()
+
+st.markdown(
+    '<div class="footer-strip">kalkulator RSA &middot; untuk belajar</div>',
+    unsafe_allow_html=True,
+)
