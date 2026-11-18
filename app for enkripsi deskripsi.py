@@ -35,7 +35,7 @@ def mod_inverse(e: int, phi: int) -> int:
     return old_s % phi
 
 
-def generate_keys(p: int, q: int, e: int | None = None):
+def generate_keys(p, q, e=None):
     if not is_prime(p) or not is_prime(q):
         raise ValueError("p dan q harus bilangan prima.")
     if p == q:
