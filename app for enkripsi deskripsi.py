@@ -237,8 +237,8 @@ div[data-baseweb="tab-list"] {
     padding: 14px 0 0; gap: 14px; width: 100%; max-width: 100%;
     margin-top: 8px; flex-wrap: wrap;
 }
-.stApp .stTabs button[role="tab"],
-.stApp .stTabs button[data-baseweb="tab"] {
+html body button[role="tab"],
+html body button[data-baseweb="tab"] {
     background: var(--cream) !important;
     border: 3px solid var(--choc-dark) !important;
     border-radius: 18px 18px 0 0 !important;
@@ -247,25 +247,25 @@ div[data-baseweb="tab-list"] {
     box-shadow: 0 4px 0 rgba(0,0,0,.35);
     transition: background .12s, transform .12s;
 }
-.stApp .stTabs button[role="tab"]:hover { background: #fffaf0 !important; transform: translateY(-2px); }
-.stApp .stTabs button[role="tab"] *,
-.stApp .stTabs button[data-baseweb="tab"] *,
-.stApp .stTabs button[role="tab"] p,
-.stApp .stTabs button[role="tab"] span,
-.stApp .stTabs button[role="tab"] div[data-testid="stMarkdownContainer"] p {
+html body button[role="tab"]:hover { background: #fffaf0 !important; transform: translateY(-2px); }
+html body button[role="tab"] *,
+html body button[data-baseweb="tab"] *,
+html body button[role="tab"] p,
+html body button[role="tab"] span,
+html body button[role="tab"] div[data-testid="stMarkdownContainer"] p {
     font-family: 'Itim', cursive !important; font-size: 2.4rem !important;
     color: #7a5a47 !important; -webkit-text-fill-color: #7a5a47 !important;
     line-height: 1.2 !important; margin: 0 !important; opacity: 1 !important;
     text-shadow: none !important;
 }
 /* tab yang sedang dipilih: tulisan gelap pekat + garis hijau tebal */
-.stApp .stTabs button[role="tab"][aria-selected="true"] {
+html body button[role="tab"][aria-selected="true"] {
     border-color: var(--leaf-dark) !important;
     border-width: 4px !important;
     box-shadow: 0 4px 0 var(--leaf-dark);
 }
-.stApp .stTabs button[role="tab"][aria-selected="true"] *,
-.stApp .stTabs button[role="tab"][aria-selected="true"] p {
+html body button[role="tab"][aria-selected="true"] *,
+html body button[role="tab"][aria-selected="true"] p {
     color: #2e1a10 !important; -webkit-text-fill-color: #2e1a10 !important;
 }
 div[data-baseweb="tab-highlight"], div[data-baseweb="tab-border"] { display: none !important; }
@@ -431,8 +431,8 @@ div[data-testid="stAlert"] { border-radius: 18px; }
     .welcome-badge { min-width: 270px; padding: 10px 16px 8px; top: -92px; }
     .welcome-badge .t { font-size: 1.6rem; }
     .welcome-badge .s { font-size: .85rem; }
-    .stApp .stTabs button[role="tab"] *, .stApp .stTabs button[role="tab"] p { font-size: 1.4rem !important; }
-    .stApp .stTabs button[role="tab"] { padding: 4px 12px 8px !important; }
+    html body button[role="tab"] *, html body button[role="tab"] p { font-size: 1.4rem !important; }
+    html body button[role="tab"] { padding: 4px 12px 8px !important; }
     div[data-baseweb="tab-list"] { gap: 8px; padding: 10px 0 0; }
     .band .dot-circle { display: none; }
     .band .sub { max-width: 100%; }
