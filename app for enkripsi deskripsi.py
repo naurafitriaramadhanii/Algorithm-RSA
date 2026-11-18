@@ -421,15 +421,16 @@ if keys:
                         ),
                         unsafe_allow_html=True,
                     )
+                    with st.expander("Klik untuk menampilkan tabel perhitungan per blok"):
+                        st.markdown(
+                            table(
+                                ["Blok", "Nilai (m)", f"Cipher (m^{e} mod {n})"],
+                                [(b, m, c) for b, m, c in rows],
+                            ),
+                            unsafe_allow_html=True,
+                        )
                     st.markdown(result_box("Ciphertext", cipher_out), unsafe_allow_html=True)
                     st.caption(f"Salin angka di atas ke tab Dekripsi (ukuran blok tetap {k} digit).")
-                    st.markdown(
-                        table(
-                            ["Blok", "Nilai (m)", f"Cipher (m^{e} mod {n})"],
-                            [(b, m, c) for b, m, c in rows],
-                        ),
-                        unsafe_allow_html=True,
-                    )
                 except ValueError as ex:
                     st.error(str(ex))
 
