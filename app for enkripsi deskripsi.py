@@ -1,6 +1,8 @@
 """
 Aplikasi Enkripsi & Dekripsi RSA (input p dan q manual) - versi Streamlit
 Memakai kode ASCII (0-127) untuk tiap karakter pesan.
+Kode ASCII ditulis 3 digit, disambung, lalu dipisah menjadi blok k digit
+(k bisa dipilih: 2, 3, dst.) dan tiap blok dienkripsi dengan RSA.
 Jalankan lokal: streamlit run app.py
 Catatan: untuk edukasi. Jangan dipakai untuk mengamankan data sungguhan.
 """
@@ -87,26 +89,57 @@ def euclid_steps(e, phi):
     return rows, old_r, old_s  # old_r = gcd, old_s = koefisien e
 
 
-def encrypt_steps(text, e, n):
-    """Return list of (karakter, kode ASCII, cipher)."""
-    rows = []
+def valid_block_sizes(n, max_k=6):
+    """Ukuran blok k (digit) yang valid: nilai blok terbesar 10^k - 1 harus < n."""
+    return [k for k in range(2, max_k + 1) if 10 ** k <= n]
+
+
+def encrypt_blocks(text, e, n, k):
+    """
+    Tiap karakter -> kode ASCII 3 digit, disambung, dipisah per k digit,
+    tiap blok dienkripsi. Return (codes, digits, pad, rows),
+    rows = list of (blok_str, m, cipher).
+    """
+    codes = []
     for ch in text:
         code = ord(ch)
         if code > 127:
             raise ValueError(f"Karakter '{ch}' bukan ASCII (0-127).")
-        rows.append((ch, code, pow(code, e, n)))
-    return rows
-
-
-def decrypt_steps(cipher, d, n):
-    """Return list of (cipher, kode ASCII, karakter)."""
+        codes.append(code)
+    digits = "".join(f"{c:03d}" for c in codes)
+    pad = (-len(digits)) % k
+    padded = digits + "0" * pad
     rows = []
+    for i in range(0, len(padded), k):
+        blok = padded[i:i + k]
+        m = int(blok)
+        rows.append((blok, m, pow(m, e, n)))
+    return codes, digits, pad, rows
+
+
+def decrypt_blocks(cipher, d, n, k):
+    """
+    Dekripsi tiap blok, isi nol di kiri sampai k digit, sambung,
+    lalu baca per 3 digit sebagai kode ASCII.
+    Return (rows, plaintext), rows = list of (cipher, blok_str).
+    """
+    rows, digits = [], ""
     for c in cipher.split():
-        code = pow(int(c), d, n)
+        m = pow(int(c), d, n)
+        if m >= 10 ** k:
+            raise ValueError("Blok hasil dekripsi melebihi ukuran blok.")
+        blok = str(m).zfill(k)
+        rows.append((int(c), blok))
+        digits += blok
+    usable = len(digits) // 3 * 3          # buang sisa digit pengisi
+    chars = []
+    for i in range(0, usable, 3):
+        code = int(digits[i:i + 3])
         if code > 127:
-            raise ValueError("Hasil bukan kode ASCII, kunci tidak cocok.")
-        rows.append((int(c), code, chr(code)))
-    return rows
+            raise ValueError("Hasil bukan kode ASCII, kunci atau ukuran blok tidak cocok.")
+        chars.append(chr(code))
+    plain = "".join(chars).rstrip("\x00")  # buang pengisi 000 di akhir
+    return rows, plain
 
 
 # ---------------- Tampilan ----------------
@@ -244,6 +277,23 @@ if keys:
     n, phi, e, d = keys
     p, q = int(p), int(q)
 
+    # ---------------- 2. Ukuran blok ----------------
+    st.markdown('<div class="section-title">Ukuran Blok</div>', unsafe_allow_html=True)
+    sizes = valid_block_sizes(n)
+    k = st.radio(
+        "Pesan dipisah menjadi blok berapa digit?",
+        sizes,
+        index=sizes.index(3) if 3 in sizes else 0,
+        horizontal=True,
+        format_func=lambda x: f"{x} digit",
+        key="blok",
+    )
+    st.caption(
+        f"Nilai blok terbesar ({10 ** k - 1}) harus lebih kecil dari n = {n}, "
+        f"jadi untuk n ini ukuran blok maksimal {sizes[-1]} digit. "
+        "Ukuran blok yang sama harus dipakai saat enkripsi dan dekripsi."
+    )
+
     # ---------------- Tab: Pembangkitan Kunci | Enkripsi | Dekripsi ----------------
     tab_key, tab_enc, tab_dec = st.tabs(["Pembangkitan Kunci", "Enkripsi", "Dekripsi"])
 
@@ -339,7 +389,6 @@ if keys:
             unsafe_allow_html=True,
         )
 
-
     # ---- Tab Enkripsi: hanya kunci publik ----
     with tab_enc:
         st.markdown(
@@ -353,10 +402,34 @@ if keys:
                 st.warning("Isi plaintext dulu.")
             else:
                 try:
-                    rows = encrypt_steps(plain, e, n)
+                    codes, digits, pad, rows = encrypt_blocks(plain, e, n, k)
                     cipher_out = " ".join(str(r[2]) for r in rows)
+
+                    kode_str = " ".join(f"{c:03d}" for c in codes)
+                    blok_str = " | ".join(r[0] for r in rows)
+                    note = (
+                        f"Blok terakhir ditambah {pad} angka 0 di belakang agar genap {k} digit."
+                        if pad else ""
+                    )
+                    st.markdown(
+                        step_box(
+                            f"Pemisahan blok ({k} digit)",
+                            f"Kode ASCII (3 digit): {kode_str}<br>"
+                            f"Digit disambung: {digits}<br>"
+                            f"Dipisah per {k} digit: {blok_str}",
+                            note,
+                        ),
+                        unsafe_allow_html=True,
+                    )
                     st.markdown(result_box("Ciphertext", cipher_out), unsafe_allow_html=True)
-                    st.caption("Salin angka di atas ke tab Dekripsi.")
+                    st.caption(f"Salin angka di atas ke tab Dekripsi (ukuran blok tetap {k} digit).")
+                    st.markdown(
+                        table(
+                            ["Blok", "Nilai (m)", f"Cipher (m^{e} mod {n})"],
+                            [(b, m, c) for b, m, c in rows],
+                        ),
+                        unsafe_allow_html=True,
+                    )
                 except ValueError as ex:
                     st.error(str(ex))
 
@@ -373,8 +446,17 @@ if keys:
                 st.warning("Isi ciphertext dulu.")
             else:
                 try:
-                    rows = decrypt_steps(cipher, d, n)
-                    plain_out = "".join(r[2] for r in rows)
+                    rows, plain_out = decrypt_blocks(cipher, d, n, k)
                     st.markdown(result_box("Plaintext", plain_out, "dec"), unsafe_allow_html=True)
+                    st.markdown(
+                        table(
+                            ["Cipher (c)", f"Blok (c^{d} mod {n}, {k} digit)"],
+                            rows,
+                        ),
+                        unsafe_allow_html=True,
+                    )
                 except (ValueError, OverflowError):
-                    st.error("Ciphertext tidak valid atau kunci (p, q) tidak cocok.")
+                    st.error(
+                        "Ciphertext tidak valid, atau kunci (p, q) dan ukuran blok tidak cocok "
+                        "dengan saat enkripsi."
+                    )
