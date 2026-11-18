@@ -168,16 +168,11 @@ st.markdown(
     --butter: #f6e4b0;      /* kuning mentega (kartu) */
     --butter-edge: #d9b878;
     --leaf: #9bb05a;        /* hijau daun */
-    --leaf-dark: #6f8438;
-    --leaf-text: #4c6119;   /* hijau tua khusus teks (kontras tinggi) */
+    --leaf-dark: #5f7330;   /* hijau daun lebih gelap (kontras lebih baik) */
     --paper: #fffaf0;
-    --ink: #4a2e20;         /* teks utama di atas krim (lebih gelap) */
-    --on-dark: #fff3d6;     /* teks di atas cokelat */
+    --ink: #2e1a10;         /* teks gelap di atas latar terang (lebih pekat) */
+    --white: #ffffff;       /* teks di atas latar cokelat/hijau */
 }
-
-/* Paksa widget Streamlit memakai skema terang, supaya teks tidak ikut
-   berubah terang saat browser / sistem memakai dark mode */
-html, body, .stApp { color-scheme: light; }
 
 /* ===== Latar halaman: kotak-kotak krim ===== */
 .stApp {
@@ -221,31 +216,39 @@ div[data-testid="collapsedControl"] { display: none !important; }
 .awning span:nth-child(even) { background: var(--leaf); }
 .welcome-wrap { height: 0; position: relative; z-index: 5; }
 .welcome-badge {
-    position: absolute; left: 50%; top: -92px; transform: translateX(-50%);
+    position: absolute; left: 50%; top: -98px; transform: translateX(-50%);
     background: var(--choc); border: 4px solid var(--choc-dark);
     outline: 3px dashed #c9a27a; outline-offset: -11px;
-    border-radius: 26px; padding: 12px 34px 10px; text-align: center;
-    box-shadow: 0 6px 0 rgba(75,45,32,.55); min-width: 380px;
+    border-radius: 26px; padding: 14px 34px 12px; text-align: center;
+    box-shadow: 0 6px 0 rgba(75,45,32,.55); min-width: 460px;
 }
-.welcome-badge .t { font-family: 'Itim', cursive; font-size: 2rem; color: #ffffff; line-height: 1.05; }
-.welcome-badge .s { font-size: 1rem; color: #ffffff; font-weight: 600; }
+.welcome-badge .t {
+    font-family: 'Itim', cursive; font-size: 2.2rem; color: #ffffff; line-height: 1.05;
+    text-shadow: 0 2px 0 rgba(0,0,0,.35);
+}
+.welcome-badge .s {
+    font-size: 1.05rem; color: #ffffff; font-weight: 700; margin-top: 2px;
+    text-shadow: 0 1px 0 rgba(0,0,0,.35);
+}
 
-/* ===== Tab (st.tabs) ===== */
+/* ===== Tab (st.tabs) - tulisan Enkripsi / Dekripsi dibesarkan ===== */
 div[data-baseweb="tab-list"] {
     background: var(--choc); border: 3px solid var(--choc-dark); border-bottom: 0;
-    border-radius: 26px 26px 0 0; padding: 12px 28px 0; gap: 30px; width: fit-content;
+    border-radius: 26px 26px 0 0; padding: 14px 34px 0; gap: 40px; width: fit-content;
     max-width: 100%; margin-top: 8px;
 }
-button[data-baseweb="tab"] { background: transparent !important; padding: 0 6px 10px; height: auto; }
+button[data-baseweb="tab"] { background: transparent !important; padding: 0 8px 12px; height: auto; }
 button[data-baseweb="tab"] p,
 button[data-baseweb="tab"] div[data-testid="stMarkdownContainer"] p {
-    font-family: 'Itim', cursive; font-size: 1.9rem !important; color: #f1e3c8 !important;
+    font-family: 'Itim', cursive; font-size: 2.6rem !important; color: #ffffff !important;
+    opacity: .75; line-height: 1.2; margin: 0;
 }
 button[data-baseweb="tab"][aria-selected="true"] p,
 button[data-baseweb="tab"][aria-selected="true"] div[data-testid="stMarkdownContainer"] p {
-    color: #ffffff !important;
+    color: #ffffff !important; opacity: 1;
+    text-shadow: 0 2px 0 rgba(0,0,0,.35);
 }
-div[data-baseweb="tab-highlight"] { background: var(--leaf) !important; height: 5px !important; }
+div[data-baseweb="tab-highlight"] { background: var(--leaf) !important; height: 6px !important; }
 div[data-baseweb="tab-border"] { display: none; }
 div[data-baseweb="tab-panel"] { padding-top: 0 !important; }
 
@@ -256,26 +259,29 @@ div[role="radiogroup"] label {
     border-radius: 999px; padding: 2px 16px; margin: 0;
 }
 div[role="radiogroup"] label > div:first-child { display: none; }
-div[role="radiogroup"] label p { color: var(--ink); margin: 0; }
+div[role="radiogroup"] label p { color: var(--ink); margin: 0; font-weight: 700; }
 div[role="radiogroup"] label:has(input:checked) {
     background: var(--choc); border-color: var(--choc-dark);
 }
-div[role="radiogroup"] label:has(input:checked) p { color: #ffe9bd; }
+div[role="radiogroup"] label:has(input:checked) p { color: #ffffff; }
 
 /* ===== Pita header "home + about" ===== */
 .band {
     position: relative; margin-top: 0; margin-bottom: -0.6rem;
     background: repeating-linear-gradient(135deg, #6a4332 0 14px, #61402f 14px 28px);
     border: 4px solid #fffaf0; border-bottom: 0;
-    border-radius: 26px 26px 0 0; padding: 20px 28px 22px; color: #ffe9bd;
+    border-radius: 26px 26px 0 0; padding: 20px 28px 22px; color: #ffffff;
     box-shadow: 0 0 0 3px #e8d9b4;
 }
-.band .ttl { font-family: 'Itim', cursive; font-size: 2.3rem; color: #fff6e0; line-height: 1.1; }
-.band .sub { font-size: .92rem; color: #fbe3bd; margin: 2px 0 12px; max-width: 72%; }
+.band .ttl {
+    font-family: 'Itim', cursive; font-size: 2.3rem; color: #ffffff; line-height: 1.1;
+    text-shadow: 0 2px 0 rgba(0,0,0,.3);
+}
+.band .sub { font-size: .98rem; color: #ffffff; font-weight: 600; margin: 2px 0 12px; max-width: 72%; }
 .pills { display: flex; gap: 12px; flex-wrap: wrap; }
 .pill {
     background: var(--cream); color: var(--ink); border: 3px solid var(--choc-dark);
-    border-radius: 999px; padding: 3px 20px; font-size: .88rem; font-weight: 600;
+    border-radius: 999px; padding: 3px 20px; font-size: .88rem; font-weight: 700;
     box-shadow: inset 0 -3px 0 rgba(176,138,91,.35);
 }
 .band .dot-circle {
@@ -299,24 +305,24 @@ div[data-testid="stVerticalBlockBorderWrapper"] div[data-testid="stVerticalBlock
 /* ===== Judul seksi: lingkaran hijau + garis putus ===== */
 .section-title {
     display: flex; align-items: center; gap: 10px; width: 100%;
-    font-family: 'Itim', cursive; font-size: 1.55rem; color: var(--ink);
-    border-bottom: 2px dashed #d8c89f; padding-bottom: 6px; margin: 14px 0 10px;
+    font-family: 'Itim', cursive; font-size: 1.65rem; color: var(--ink);
+    border-bottom: 2px dashed #b9a770; padding-bottom: 6px; margin: 14px 0 10px;
 }
 .section-title::before {
     content: "✿"; width: 34px; height: 34px; border-radius: 50%;
     background: var(--leaf-dark); color: #fff; display: inline-flex;
     align-items: center; justify-content: center; font-size: 1.05rem;
-    box-shadow: 0 2px 0 var(--leaf-text);
+    box-shadow: 0 2px 0 #44541f;
 }
 
 /* ===== Kartu kunci ===== */
 .key-card {
-    border-radius: 20px; padding: 14px 20px; color: var(--on-dark); margin-bottom: 10px;
+    border-radius: 20px; padding: 14px 20px; color: #ffffff; margin-bottom: 10px;
     border: 3px solid var(--choc-dark); box-shadow: 0 5px 0 rgba(75,45,32,.35);
 }
-.key-card .label { font-size: .85rem; color: var(--on-dark); }
-.key-card .value { font-family: 'Itim', cursive; font-size: 1.4rem; color: #ffffff; word-break: break-all; }
-.k-pub { background: var(--leaf-text); }
+.key-card .label { font-size: .9rem; color: #ffffff; font-weight: 600; }
+.key-card .value { font-family: 'Itim', cursive; font-size: 1.5rem; color: #ffffff; word-break: break-all; }
+.k-pub { background: var(--leaf-dark); }
 .k-prv { background: var(--choc); }
 
 /* ===== Kartu langkah / hasil (gaya balon kuning) ===== */
@@ -330,14 +336,14 @@ div[data-testid="stVerticalBlockBorderWrapper"] div[data-testid="stVerticalBlock
 .step.s3 { background: #eef0c9; border-color: #c4cc84; box-shadow: 3px 4px 0 #c4cc84; }
 .step.s4 { background: #fde6cf; border-color: #e1b58a; box-shadow: 3px 4px 0 #e1b58a; }
 .step .st-title, .result-title {
-    font-family: 'Itim', cursive; font-size: 1.15rem; color: var(--choc-dark); margin-bottom: 4px;
+    font-family: 'Itim', cursive; font-size: 1.2rem; color: var(--choc-dark); margin-bottom: 4px;
 }
-.step .st-calc { font-family: 'Courier New', monospace; font-size: 1rem; color: var(--ink); word-break: break-all; }
-.step .st-note { font-size: .88rem; color: var(--ink); margin-top: 4px; }
-.step .ok { color: var(--leaf-text); font-weight: 700; }
-.result-box { word-break: break-all; background: #fffaf0; border-color: var(--milk); box-shadow: 3px 4px 0 var(--milk); }
+.step .st-calc { font-family: 'Courier New', monospace; font-size: 1rem; font-weight: 700; word-break: break-all; }
+.step .st-note { font-size: .9rem; opacity: 1; margin-top: 4px; }
+.step .ok { color: var(--leaf-dark); font-weight: 700; }
+.result-box { word-break: break-all; background: #fffaf0; border-color: var(--milk); box-shadow: 3px 4px 0 var(--milk); font-weight: 600; }
 .result-box.dec { background: #f1f4d6; border-color: var(--leaf); box-shadow: 3px 4px 0 var(--leaf); }
-.result-box.dec .result-title { color: var(--leaf-text); }
+.result-box.dec .result-title { color: var(--leaf-dark); }
 
 /* ===== Tabel ===== */
 .tbl-wrap {
@@ -346,12 +352,12 @@ div[data-testid="stVerticalBlockBorderWrapper"] div[data-testid="stVerticalBlock
 }
 table.steps { width: 100%; border-collapse: collapse; background: var(--paper); }
 table.steps th {
-    background: var(--choc); color: var(--on-dark); padding: 8px 10px; position: sticky; top: 0;
+    background: var(--choc); color: #ffffff; padding: 8px 10px; position: sticky; top: 0;
     text-align: center; font-family: 'Itim', cursive; font-weight: 400;
 }
 table.steps td {
     padding: 6px 10px; text-align: center; color: var(--ink);
-    border-bottom: 1px dashed #dccfa6; font-family: 'Courier New', monospace;
+    border-bottom: 1px dashed #c9bb8c; font-family: 'Courier New', monospace; font-weight: 700;
 }
 table.steps tr:nth-child(even) td { background: #fbf0d3; }
 
@@ -360,68 +366,49 @@ div[data-baseweb="input"], div[data-baseweb="textarea"], div[data-baseweb="base-
     background: var(--paper) !important; border-radius: 16px !important;
 }
 div[data-baseweb="input"], div[data-baseweb="textarea"] {
-    border: 2px solid var(--butter-edge) !important;
+    border: 2px solid var(--milk) !important;
 }
 div[data-baseweb="input"] input, div[data-baseweb="textarea"] textarea {
-    color: var(--ink) !important; -webkit-text-fill-color: var(--ink) !important;
-    font-family: 'Mali', sans-serif;
-}
-div[data-baseweb="input"] input::placeholder, div[data-baseweb="textarea"] textarea::placeholder {
-    color: #8a6a55 !important; -webkit-text-fill-color: #8a6a55 !important; opacity: 1;
+    color: var(--ink) !important; font-family: 'Mali', sans-serif; font-weight: 600;
 }
 div[data-testid="stNumberInput"] button { color: var(--choc) !important; background: transparent !important; }
-.stApp label p, div[data-testid="stWidgetLabel"] p { color: var(--ink) !important; font-weight: 600; }
-div[data-testid="stCaptionContainer"] p, div[data-testid="stCaptionContainer"] { color: var(--choc-dark) !important; font-weight: 600; }
-
-/* ===== Teks markdown bawaan Streamlit di atas panel krim ===== */
-div[data-testid="stVerticalBlockBorderWrapper"] div[data-testid="stMarkdownContainer"] p,
-div[data-testid="stVerticalBlockBorderWrapper"] div[data-testid="stMarkdownContainer"] li {
-    color: var(--ink);
-}
+.stApp label p { color: var(--ink); font-weight: 700; }
+div[data-testid="stCaptionContainer"] p { color: var(--ink) !important; font-weight: 600; }
 
 /* ===== Tombol ala "Button" cokelat ===== */
 div.stButton > button {
-    background: var(--choc); color: var(--on-dark); border: 3px solid var(--choc-dark);
-    border-radius: 18px; padding: 8px 34px; font-family: 'Itim', cursive; font-size: 1.2rem;
+    background: var(--choc); color: #ffffff; border: 3px solid var(--choc-dark);
+    border-radius: 18px; padding: 8px 34px; font-family: 'Itim', cursive; font-size: 1.3rem;
     box-shadow: 0 5px 0 var(--choc-dark); transition: transform .12s, box-shadow .12s;
 }
-div.stButton > button p { color: var(--on-dark) !important; font-family: 'Itim', cursive; }
+div.stButton > button p { color: #ffffff !important; }
 div.stButton > button:hover {
     transform: translateY(-2px); box-shadow: 0 7px 0 var(--choc-dark);
-    background: var(--choc-dark); color: #fff; border-color: var(--choc-dark);
+    background: var(--milk); color: #fff; border-color: var(--choc-dark);
 }
-div.stButton > button:hover p { color: #ffffff !important; }
 div.stButton > button:active { transform: translateY(3px); box-shadow: 0 2px 0 var(--choc-dark); }
 
 /* ===== Expander ===== */
 div[data-testid="stExpander"] details {
     background: var(--paper); border: 2px dashed var(--milk); border-radius: 18px;
 }
-div[data-testid="stExpander"] summary,
-div[data-testid="stExpander"] summary p,
-div[data-testid="stExpander"] summary span { color: var(--choc-dark) !important; font-weight: 700; }
-div[data-testid="stExpander"] summary svg { color: var(--choc-dark) !important; fill: var(--choc-dark); }
+div[data-testid="stExpander"] summary p { color: var(--choc-dark); font-weight: 700; }
 
-/* ===== Alert: latar solid + teks gelap supaya selalu terbaca ===== */
-div[data-testid="stAlert"], div[data-testid="stAlertContainer"] {
-    background: #fff1c9 !important; border-radius: 18px;
-}
-div[data-testid="stAlert"] { border: 2px solid var(--butter-edge); }
-div[data-testid="stAlert"] p, div[data-testid="stAlert"] span,
-div[data-testid="stAlert"] div, div[data-testid="stAlert"] li { color: var(--choc-dark) !important; }
+/* ===== Alert ===== */
+div[data-testid="stAlert"] { border-radius: 18px; }
 
 /* ===== Footer strip ===== */
 .footer-strip {
-    margin-top: 6px; padding: 14px; text-align: center; color: var(--on-dark); font-size: .95rem;
+    margin-top: 6px; padding: 14px; text-align: center; color: #ffffff; font-size: 1rem; font-weight: 600;
     background: repeating-linear-gradient(135deg, #6a4332 0 14px, #61402f 14px 28px);
     border: 4px solid #fffaf0; border-radius: 18px; box-shadow: 0 0 0 3px #e8d9b4;
 }
 
 @media (max-width: 640px) {
-    .welcome-badge { min-width: 250px; padding: 10px 18px 8px; }
-    .welcome-badge .t { font-size: 1.5rem; }
+    .welcome-badge { min-width: 270px; padding: 10px 16px 8px; top: -92px; }
+    .welcome-badge .t { font-size: 1.6rem; }
     .welcome-badge .s { font-size: .85rem; }
-    button[data-baseweb="tab"] p { font-size: 1.3rem !important; }
+    button[data-baseweb="tab"] p { font-size: 1.7rem !important; }
     div[data-baseweb="tab-list"] { gap: 14px; padding: 10px 14px 0; }
     .band .dot-circle { display: none; }
     .band .sub { max-width: 100%; }
@@ -812,7 +799,7 @@ st.markdown(
 <div class="welcome-wrap">
   <div class="welcome-badge">
     <div class="t">Selamat Datang!</div>
-    <div class="s">Kalkulator Jova, Ais, dan Naura &#9834;(&acute;&nabla;&#96;)</div>
+    <div class="s">Kalkulator RSA Jova, Ais, dan Naura &#9834;(&acute;&nabla;&#96;)</div>
   </div>
 </div>
 """,
