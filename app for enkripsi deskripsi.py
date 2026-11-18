@@ -113,8 +113,6 @@ h1, h2, h3, label, p { color: var(--wood); }
 }
 .key-card .label { font-size: .85rem; opacity: .9; letter-spacing: .5px; }
 .key-card .value { font-size: 1.15rem; font-weight: 700; word-break: break-all; }
-.k-n   { background: var(--leaf); color: var(--juniper); }
-.k-phi { background: var(--wood); }
 .k-pub { background: var(--juniper); }
 .k-prv { background: var(--bow); }
 .result-box {
@@ -205,17 +203,15 @@ except ValueError as ex:
 if keys:
     n, phi, e, d = keys
 
-    c1, c2 = st.columns(2)
-    c1.markdown(key_card("k-n", "n = p × q", n), unsafe_allow_html=True)
-    c2.markdown(key_card("k-phi", "φ(n) = (p-1)(q-1)", phi), unsafe_allow_html=True)
-    c3, c4 = st.columns(2)
-    c3.markdown(key_card("k-pub", "Kunci Publik (e, n)", f"({e}, {n})"), unsafe_allow_html=True)
-    c4.markdown(key_card("k-prv", "Kunci Privat (d, n)", f"({d}, {n})"), unsafe_allow_html=True)
-
     st.markdown('<div class="section-title">Pesan</div>', unsafe_allow_html=True)
     tab_enc, tab_dec = st.tabs(["Enkripsi", "Dekripsi"])
 
+    # ---- Tab Enkripsi: hanya kunci publik ----
     with tab_enc:
+        st.markdown(
+            key_card("k-pub", "Kunci Publik (e, n)", f"({e}, {n})"),
+            unsafe_allow_html=True,
+        )
         plain = st.text_area("Plaintext (karakter ASCII)", height=120, key="plain",
                              placeholder="Ketik pesan rahasiamu di sini...")
         if st.button("Enkripsi"):
@@ -237,7 +233,12 @@ if keys:
                 except ValueError as ex:
                     st.error(str(ex))
 
+    # ---- Tab Dekripsi: hanya kunci privat ----
     with tab_dec:
+        st.markdown(
+            key_card("k-prv", "Kunci Privat (d, n)", f"({d}, {n})"),
+            unsafe_allow_html=True,
+        )
         cipher = st.text_area("Ciphertext (angka dipisah spasi)", height=120, key="cipher",
                               placeholder="Tempel ciphertext di sini...")
         if st.button("Dekripsi"):
