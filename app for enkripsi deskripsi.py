@@ -169,9 +169,15 @@ st.markdown(
     --butter-edge: #d9b878;
     --leaf: #9bb05a;        /* hijau daun */
     --leaf-dark: #6f8438;
+    --leaf-text: #4c6119;   /* hijau tua khusus teks (kontras tinggi) */
     --paper: #fffaf0;
-    --ink: #5a3a2a;
+    --ink: #4a2e20;         /* teks utama di atas krim (lebih gelap) */
+    --on-dark: #fff3d6;     /* teks di atas cokelat */
 }
+
+/* Paksa widget Streamlit memakai skema terang, supaya teks tidak ikut
+   berubah terang saat browser / sistem memakai dark mode */
+html, body, .stApp { color-scheme: light; }
 
 /* ===== Latar halaman: kotak-kotak krim ===== */
 .stApp {
@@ -298,19 +304,19 @@ div[data-testid="stVerticalBlockBorderWrapper"] div[data-testid="stVerticalBlock
 }
 .section-title::before {
     content: "✿"; width: 34px; height: 34px; border-radius: 50%;
-    background: var(--leaf); color: #fff; display: inline-flex;
+    background: var(--leaf-dark); color: #fff; display: inline-flex;
     align-items: center; justify-content: center; font-size: 1.05rem;
-    box-shadow: 0 2px 0 var(--leaf-dark);
+    box-shadow: 0 2px 0 var(--leaf-text);
 }
 
 /* ===== Kartu kunci ===== */
 .key-card {
-    border-radius: 20px; padding: 14px 20px; color: #fff6e0; margin-bottom: 10px;
+    border-radius: 20px; padding: 14px 20px; color: var(--on-dark); margin-bottom: 10px;
     border: 3px solid var(--choc-dark); box-shadow: 0 5px 0 rgba(75,45,32,.35);
 }
-.key-card .label { font-size: .85rem; opacity: .92; }
-.key-card .value { font-family: 'Itim', cursive; font-size: 1.4rem; word-break: break-all; }
-.k-pub { background: var(--leaf-dark); }
+.key-card .label { font-size: .85rem; color: var(--on-dark); }
+.key-card .value { font-family: 'Itim', cursive; font-size: 1.4rem; color: #ffffff; word-break: break-all; }
+.k-pub { background: var(--leaf-text); }
 .k-prv { background: var(--choc); }
 
 /* ===== Kartu langkah / hasil (gaya balon kuning) ===== */
@@ -324,14 +330,14 @@ div[data-testid="stVerticalBlockBorderWrapper"] div[data-testid="stVerticalBlock
 .step.s3 { background: #eef0c9; border-color: #c4cc84; box-shadow: 3px 4px 0 #c4cc84; }
 .step.s4 { background: #fde6cf; border-color: #e1b58a; box-shadow: 3px 4px 0 #e1b58a; }
 .step .st-title, .result-title {
-    font-family: 'Itim', cursive; font-size: 1.15rem; color: var(--choc); margin-bottom: 4px;
+    font-family: 'Itim', cursive; font-size: 1.15rem; color: var(--choc-dark); margin-bottom: 4px;
 }
-.step .st-calc { font-family: 'Courier New', monospace; font-size: 1rem; word-break: break-all; }
-.step .st-note { font-size: .88rem; opacity: .85; margin-top: 4px; }
-.step .ok { color: var(--leaf-dark); font-weight: 700; }
+.step .st-calc { font-family: 'Courier New', monospace; font-size: 1rem; color: var(--ink); word-break: break-all; }
+.step .st-note { font-size: .88rem; color: var(--ink); margin-top: 4px; }
+.step .ok { color: var(--leaf-text); font-weight: 700; }
 .result-box { word-break: break-all; background: #fffaf0; border-color: var(--milk); box-shadow: 3px 4px 0 var(--milk); }
 .result-box.dec { background: #f1f4d6; border-color: var(--leaf); box-shadow: 3px 4px 0 var(--leaf); }
-.result-box.dec .result-title { color: var(--leaf-dark); }
+.result-box.dec .result-title { color: var(--leaf-text); }
 
 /* ===== Tabel ===== */
 .tbl-wrap {
@@ -340,7 +346,7 @@ div[data-testid="stVerticalBlockBorderWrapper"] div[data-testid="stVerticalBlock
 }
 table.steps { width: 100%; border-collapse: collapse; background: var(--paper); }
 table.steps th {
-    background: var(--choc); color: #ffe9bd; padding: 8px 10px; position: sticky; top: 0;
+    background: var(--choc); color: var(--on-dark); padding: 8px 10px; position: sticky; top: 0;
     text-align: center; font-family: 'Itim', cursive; font-weight: 400;
 }
 table.steps td {
@@ -357,36 +363,56 @@ div[data-baseweb="input"], div[data-baseweb="textarea"] {
     border: 2px solid var(--butter-edge) !important;
 }
 div[data-baseweb="input"] input, div[data-baseweb="textarea"] textarea {
-    color: var(--ink) !important; font-family: 'Mali', sans-serif;
+    color: var(--ink) !important; -webkit-text-fill-color: var(--ink) !important;
+    font-family: 'Mali', sans-serif;
+}
+div[data-baseweb="input"] input::placeholder, div[data-baseweb="textarea"] textarea::placeholder {
+    color: #8a6a55 !important; -webkit-text-fill-color: #8a6a55 !important; opacity: 1;
 }
 div[data-testid="stNumberInput"] button { color: var(--choc) !important; background: transparent !important; }
-.stApp label p { color: var(--ink); font-weight: 600; }
-div[data-testid="stCaptionContainer"] p { color: #4b2d20 !important; font-weight: 600; }
+.stApp label p, div[data-testid="stWidgetLabel"] p { color: var(--ink) !important; font-weight: 600; }
+div[data-testid="stCaptionContainer"] p, div[data-testid="stCaptionContainer"] { color: var(--choc-dark) !important; font-weight: 600; }
+
+/* ===== Teks markdown bawaan Streamlit di atas panel krim ===== */
+div[data-testid="stVerticalBlockBorderWrapper"] div[data-testid="stMarkdownContainer"] p,
+div[data-testid="stVerticalBlockBorderWrapper"] div[data-testid="stMarkdownContainer"] li {
+    color: var(--ink);
+}
 
 /* ===== Tombol ala "Button" cokelat ===== */
 div.stButton > button {
-    background: var(--choc); color: #fff3d6; border: 3px solid var(--choc-dark);
+    background: var(--choc); color: var(--on-dark); border: 3px solid var(--choc-dark);
     border-radius: 18px; padding: 8px 34px; font-family: 'Itim', cursive; font-size: 1.2rem;
     box-shadow: 0 5px 0 var(--choc-dark); transition: transform .12s, box-shadow .12s;
 }
+div.stButton > button p { color: var(--on-dark) !important; font-family: 'Itim', cursive; }
 div.stButton > button:hover {
     transform: translateY(-2px); box-shadow: 0 7px 0 var(--choc-dark);
-    background: var(--milk); color: #fff; border-color: var(--choc-dark);
+    background: var(--choc-dark); color: #fff; border-color: var(--choc-dark);
 }
+div.stButton > button:hover p { color: #ffffff !important; }
 div.stButton > button:active { transform: translateY(3px); box-shadow: 0 2px 0 var(--choc-dark); }
 
 /* ===== Expander ===== */
 div[data-testid="stExpander"] details {
     background: var(--paper); border: 2px dashed var(--milk); border-radius: 18px;
 }
-div[data-testid="stExpander"] summary p { color: var(--choc); font-weight: 700; }
+div[data-testid="stExpander"] summary,
+div[data-testid="stExpander"] summary p,
+div[data-testid="stExpander"] summary span { color: var(--choc-dark) !important; font-weight: 700; }
+div[data-testid="stExpander"] summary svg { color: var(--choc-dark) !important; fill: var(--choc-dark); }
 
-/* ===== Alert ===== */
-div[data-testid="stAlert"] { border-radius: 18px; }
+/* ===== Alert: latar solid + teks gelap supaya selalu terbaca ===== */
+div[data-testid="stAlert"], div[data-testid="stAlertContainer"] {
+    background: #fff1c9 !important; border-radius: 18px;
+}
+div[data-testid="stAlert"] { border: 2px solid var(--butter-edge); }
+div[data-testid="stAlert"] p, div[data-testid="stAlert"] span,
+div[data-testid="stAlert"] div, div[data-testid="stAlert"] li { color: var(--choc-dark) !important; }
 
 /* ===== Footer strip ===== */
 .footer-strip {
-    margin-top: 6px; padding: 14px; text-align: center; color: #fff3d6; font-size: .95rem;
+    margin-top: 6px; padding: 14px; text-align: center; color: var(--on-dark); font-size: .95rem;
     background: repeating-linear-gradient(135deg, #6a4332 0 14px, #61402f 14px 28px);
     border: 4px solid #fffaf0; border-radius: 18px; box-shadow: 0 0 0 3px #e8d9b4;
 }
