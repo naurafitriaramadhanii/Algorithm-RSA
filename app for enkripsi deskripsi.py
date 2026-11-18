@@ -231,44 +231,48 @@ div[data-testid="collapsedControl"] { display: none !important; }
     text-shadow: 0 1px 0 rgba(0,0,0,.35);
 }
 
-/* ===== Tab (st.tabs): tiap tombol berbentuk kotak berlatar krim ===== */
+/* ===== Tab (st.tabs): kotak jelas, tulisan CREAM besar ===== */
 div[data-baseweb="tab-list"] {
     background: transparent; border: 0; border-radius: 0;
-    padding: 14px 0 0; gap: 14px; width: 100%; max-width: 100%;
+    padding: 14px 0 0; gap: 16px; width: 100%; max-width: 100%;
     margin-top: 8px; flex-wrap: wrap;
 }
 html body button[role="tab"],
 html body button[data-baseweb="tab"] {
-    background: var(--cream) !important;
-    border: 3px solid var(--choc-dark) !important;
-    border-radius: 18px 18px 0 0 !important;
-    padding: 6px 22px 10px !important; height: auto !important;
+    background: var(--choc-dark) !important;      /* kotak cokelat tua */
+    border: 4px solid var(--cream) !important;    /* garis kotak cream */
+    border-radius: 18px !important;
+    padding: 8px 28px 10px !important; height: auto !important;
     opacity: 1 !important;
-    box-shadow: 0 4px 0 rgba(0,0,0,.35);
+    box-shadow: 0 5px 0 rgba(0,0,0,.45);
     transition: background .12s, transform .12s;
 }
-html body button[role="tab"]:hover { background: #fffaf0 !important; transform: translateY(-2px); }
+html body button[role="tab"]:hover {
+    background: var(--choc) !important; transform: translateY(-2px);
+}
 html body button[role="tab"] *,
 html body button[data-baseweb="tab"] *,
 html body button[role="tab"] p,
 html body button[role="tab"] span,
 html body button[role="tab"] div[data-testid="stMarkdownContainer"] p {
-    font-family: 'Itim', cursive !important; font-size: 2.4rem !important;
-    color: #7a5a47 !important; -webkit-text-fill-color: #7a5a47 !important;
+    font-family: 'Itim', cursive !important;
+    font-size: 3rem !important;                    /* lebih besar */
+    font-weight: 700 !important;
+    color: #fdf4de !important; -webkit-text-fill-color: #fdf4de !important;
     line-height: 1.2 !important; margin: 0 !important; opacity: 1 !important;
-    text-shadow: none !important;
+    text-shadow: 0 2px 0 rgba(0,0,0,.5) !important;
 }
-/* tab yang sedang dipilih: tulisan gelap pekat + garis hijau tebal */
+/* tab yang sedang dipilih: kotak hijau + garis cream lebih tebal */
 html body button[role="tab"][aria-selected="true"] {
-    border-color: var(--leaf-dark) !important;
-    border-width: 4px !important;
-    box-shadow: 0 4px 0 var(--leaf-dark);
+    background: var(--leaf-dark) !important;
+    border-color: #fffaf0 !important;
+    border-width: 5px !important;
+    box-shadow: 0 5px 0 #44541f;
 }
-html body button[role="tab"][aria-selected="true"] *,
-html body button[role="tab"][aria-selected="true"] p {
-    color: #2e1a10 !important; -webkit-text-fill-color: #2e1a10 !important;
-}
-div[data-baseweb="tab-highlight"], div[data-baseweb="tab-border"] { display: none !important; }
+/* hilangkan garis merah/abu-abu di bawah tab */
+div[data-baseweb="tab-highlight"],
+div[data-baseweb="tab-border"],
+html body div[data-baseweb="tab-list"]::after { display: none !important; }
 div[data-baseweb="tab-panel"] { padding-top: 0 !important; }
 
 /* ===== Radio pill umum (pilihan blok) ===== */
@@ -431,8 +435,8 @@ div[data-testid="stAlert"] { border-radius: 18px; }
     .welcome-badge { min-width: 270px; padding: 10px 16px 8px; top: -92px; }
     .welcome-badge .t { font-size: 1.6rem; }
     .welcome-badge .s { font-size: .85rem; }
-    html body button[role="tab"] *, html body button[role="tab"] p { font-size: 1.4rem !important; }
-    html body button[role="tab"] { padding: 4px 12px 8px !important; }
+    html body button[role="tab"] *, html body button[role="tab"] p { font-size: 1.8rem !important; }
+    html body button[role="tab"] { padding: 4px 14px 8px !important; }
     div[data-baseweb="tab-list"] { gap: 8px; padding: 10px 0 0; }
     .band .dot-circle { display: none; }
     .band .sub { max-width: 100%; }
