@@ -4,7 +4,7 @@ Memakai kode ASCII (0-127) untuk tiap karakter pesan.
 Jalankan lokal: streamlit run app.py
 Catatan: untuk edukasi. Jangan dipakai untuk mengamankan data sungguhan.
 """
-from math import gcd
+from math import gcd, isqrt
 
 import streamlit as st
 
@@ -57,6 +57,34 @@ def generate_keys(p, q, e=None):
         raise ValueError(f"e harus 1 < e < {phi} dan koprima dengan phi(n).")
     d = mod_inverse(e, phi)
     return n, phi, e, d
+
+
+def gcd_tries(e_input, phi):
+    """Daftar (e, gcd(e, phi)) yang dicoba sampai ketemu e yang koprima."""
+    if e_input:
+        return [(e_input, gcd(e_input, phi))]
+    tries, e = [], 3
+    while True:
+        g = gcd(e, phi)
+        tries.append((e, g))
+        if g == 1 or e >= phi:
+            return tries
+        e += 2
+
+
+def euclid_steps(e, phi):
+    """Tabel extended Euclid untuk mencari d. Baris: (langkah, q, r, s)."""
+    rows = [("awal", "-", e, 1), ("awal", "-", phi, 0)]
+    old_r, r = e, phi
+    old_s, s = 1, 0
+    step = 0
+    while r != 0:
+        q = old_r // r
+        old_r, r = r, old_r - q * r
+        old_s, s = s, old_s - q * s
+        step += 1
+        rows.append((step, q, r, s))
+    return rows, old_r, old_s  # old_r = gcd, old_s = koefisien e
 
 
 def encrypt_steps(text, e, n):
@@ -115,6 +143,18 @@ h1, h2, h3, label, p { color: var(--wood); }
 .key-card .value { font-size: 1.15rem; font-weight: 700; word-break: break-all; }
 .k-pub { background: var(--juniper); }
 .k-prv { background: var(--bow); }
+.step {
+    background: #fffdf6; border-left: 8px solid var(--leaf); border-radius: 12px;
+    padding: 12px 16px; margin: 10px 0; color: var(--wood);
+    box-shadow: 0 4px 14px rgba(60, 27, 15, .10);
+}
+.step.s2 { border-left-color: var(--bow); }
+.step.s3 { border-left-color: var(--juniper); }
+.step.s4 { border-left-color: var(--wood); }
+.step .st-title { font-weight: 700; color: var(--juniper); margin-bottom: 4px; }
+.step .st-calc { font-family: monospace; font-size: 1.02rem; word-break: break-all; }
+.step .st-note { font-size: .9rem; opacity: .85; margin-top: 4px; }
+.step .ok { color: var(--juniper); font-weight: 700; }
 .result-box {
     background: #fffdf6; border-left: 8px solid var(--bow); border-radius: 12px;
     padding: 14px 16px; color: var(--wood); word-break: break-all;
@@ -155,15 +195,6 @@ def esc(s):
     return str(s).replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
 
 
-def show_char(ch):
-    names = {" ": "(spasi)", "\n": "\\n", "\t": "\\t", "\r": "\\r"}
-    if ch in names:
-        return names[ch]
-    if ord(ch) < 32 or ord(ch) == 127:
-        return f"(ctrl {ord(ch)})"
-    return ch
-
-
 def key_card(css, label, value):
     return (
         f'<div class="key-card {css}"><div class="label">{label}</div>'
@@ -188,6 +219,15 @@ def table(headers, rows):
     )
 
 
+def step_box(title, calc, note="", css=""):
+    note_html = f'<div class="st-note">{note}</div>' if note else ""
+    return (
+        f'<div class="step {css}"><div class="st-title">{title}</div>'
+        f'<div class="st-calc">{calc}</div>{note_html}</div>'
+    )
+
+
+# ---------------- 1. Input ----------------
 st.markdown('<div class="section-title">Input Kunci</div>', unsafe_allow_html=True)
 col1, col2, col3 = st.columns(3)
 p = col1.number_input("p (prima)", min_value=2, value=1009, step=1)
@@ -202,7 +242,102 @@ except ValueError as ex:
 
 if keys:
     n, phi, e, d = keys
+    p, q = int(p), int(q)
 
+    # ---------------- 2. Pembangkitan Kunci ----------------
+    st.markdown('<div class="section-title">Pembangkitan Kunci</div>', unsafe_allow_html=True)
+
+    # Langkah 1: cek prima
+    st.markdown(
+        step_box(
+            "Langkah 1 - Pastikan p dan q bilangan prima",
+            f"p = {p} &rarr; prima &nbsp;|&nbsp; q = {q} &rarr; prima",
+            f'Tidak habis dibagi bilangan 2 sampai {isqrt(p)} (untuk p) dan 2 sampai '
+            f'{isqrt(q)} (untuk q), serta p &ne; q. <span class="ok">Valid</span>',
+        ),
+        unsafe_allow_html=True,
+    )
+
+    # Langkah 2: n
+    st.markdown(
+        step_box(
+            "Langkah 2 - Hitung n",
+            f"n = p &times; q = {p} &times; {q} = <b>{n}</b>",
+            f'Syarat ASCII: n &gt; 127 &rarr; {n} &gt; 127 <span class="ok">Terpenuhi</span>',
+            "s2",
+        ),
+        unsafe_allow_html=True,
+    )
+
+    # Langkah 3: phi
+    st.markdown(
+        step_box(
+            "Langkah 3 - Hitung &phi;(n)",
+            f"&phi;(n) = (p &minus; 1) &times; (q &minus; 1) = {p - 1} &times; {q - 1} = <b>{phi}</b>",
+            css="s3",
+        ),
+        unsafe_allow_html=True,
+    )
+
+    # Langkah 4: pilih e
+    tries = gcd_tries(int(e_input), phi)
+    mode = "dimasukkan manual" if e_input else "dipilih otomatis (bilangan ganjil terkecil &gt; 1)"
+    st.markdown(
+        step_box(
+            "Langkah 4 - Pilih e",
+            f"Syarat: 1 &lt; e &lt; &phi;(n) dan FPB(e, &phi;(n)) = 1 &rarr; e = <b>{e}</b>",
+            f"e {mode}.",
+            "s4",
+        ),
+        unsafe_allow_html=True,
+    )
+    st.markdown(
+        table(
+            ["e yang dicoba", f"FPB(e, {phi})", "Koprima?"],
+            [(te, g, "Ya" if g == 1 else "Tidak") for te, g in tries],
+        ),
+        unsafe_allow_html=True,
+    )
+
+    # Langkah 5: hitung d
+    rows_eu, g, coef = euclid_steps(e, phi)
+    st.markdown(
+        step_box(
+            "Langkah 5 - Hitung d (invers modular)",
+            f"e &times; d &equiv; 1 (mod &phi;(n)) &rarr; {e} &times; d &equiv; 1 (mod {phi})",
+            "Dihitung dengan algoritma Euclid yang diperluas. Kolom s adalah koefisien e; "
+            f"FPB akhir = {g}, s terakhir sebelum sisa 0 = {coef}.",
+        ),
+        unsafe_allow_html=True,
+    )
+    st.markdown(
+        table(["Langkah", "q (hasil bagi)", "r (sisa)", "s"], rows_eu),
+        unsafe_allow_html=True,
+    )
+    st.markdown(
+        step_box(
+            "Hasil d",
+            f"d = {coef} mod {phi} = <b>{d}</b>",
+            f'Verifikasi: e &times; d mod &phi;(n) = {e} &times; {d} mod {phi} = '
+            f'{(e * d) % phi} <span class="ok">Benar (harus 1)</span>',
+            "s3",
+        ),
+        unsafe_allow_html=True,
+    )
+
+    # Langkah 6: ringkasan kunci
+    st.markdown(
+        step_box(
+            "Langkah 6 - Kunci yang dihasilkan",
+            f"Kunci Publik (e, n) = <b>({e}, {n})</b><br>"
+            f"Kunci Privat (d, n) = <b>({d}, {n})</b>",
+            "Kunci publik dipakai untuk enkripsi, kunci privat untuk dekripsi.",
+            "s2",
+        ),
+        unsafe_allow_html=True,
+    )
+
+    # ---------------- 3. Pesan ----------------
     st.markdown('<div class="section-title">Pesan</div>', unsafe_allow_html=True)
     tab_enc, tab_dec = st.tabs(["Enkripsi", "Dekripsi"])
 
@@ -223,13 +358,6 @@ if keys:
                     cipher_out = " ".join(str(r[2]) for r in rows)
                     st.markdown(result_box("Ciphertext", cipher_out), unsafe_allow_html=True)
                     st.caption("Salin angka di atas ke tab Dekripsi.")
-                    st.markdown(
-                        table(
-                            ["Karakter", "ASCII (m)", f"Cipher (m^{e} mod {n})"],
-                            [(show_char(ch), code, c) for ch, code, c in rows],
-                        ),
-                        unsafe_allow_html=True,
-                    )
                 except ValueError as ex:
                     st.error(str(ex))
 
@@ -249,12 +377,5 @@ if keys:
                     rows = decrypt_steps(cipher, d, n)
                     plain_out = "".join(r[2] for r in rows)
                     st.markdown(result_box("Plaintext", plain_out, "dec"), unsafe_allow_html=True)
-                    st.markdown(
-                        table(
-                            ["Cipher (c)", f"ASCII (c^{d} mod {n})", "Karakter"],
-                            [(c, code, show_char(ch)) for c, code, ch in rows],
-                        ),
-                        unsafe_allow_html=True,
-                    )
                 except (ValueError, OverflowError):
                     st.error("Ciphertext tidak valid atau kunci (p, q) tidak cocok.")
