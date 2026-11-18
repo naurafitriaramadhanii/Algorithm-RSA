@@ -244,102 +244,101 @@ if keys:
     n, phi, e, d = keys
     p, q = int(p), int(q)
 
-    # ---------------- 2. Pembangkitan Kunci ----------------
-    st.markdown('<div class="section-title">Pembangkitan Kunci</div>', unsafe_allow_html=True)
+    # ---------------- Tab: Pembangkitan Kunci | Enkripsi | Dekripsi ----------------
+    tab_key, tab_enc, tab_dec = st.tabs(["Pembangkitan Kunci", "Enkripsi", "Dekripsi"])
 
-    # Langkah 1: cek prima
-    st.markdown(
-        step_box(
-            "Langkah 1 - Pastikan p dan q bilangan prima",
-            f"p = {p} &rarr; prima &nbsp;|&nbsp; q = {q} &rarr; prima",
-            f'Tidak habis dibagi bilangan 2 sampai {isqrt(p)} (untuk p) dan 2 sampai '
-            f'{isqrt(q)} (untuk q), serta p &ne; q. <span class="ok">Valid</span>',
-        ),
-        unsafe_allow_html=True,
-    )
+    # ---- Tab Pembangkitan Kunci: semua perhitungan kunci ----
+    with tab_key:
+        # Langkah 1: cek prima
+        st.markdown(
+            step_box(
+                "Langkah 1 - Pastikan p dan q bilangan prima",
+                f"p = {p} &rarr; prima &nbsp;|&nbsp; q = {q} &rarr; prima",
+                f'Tidak habis dibagi bilangan 2 sampai {isqrt(p)} (untuk p) dan 2 sampai '
+                f'{isqrt(q)} (untuk q), serta p &ne; q. <span class="ok">Valid</span>',
+            ),
+            unsafe_allow_html=True,
+        )
 
-    # Langkah 2: n
-    st.markdown(
-        step_box(
-            "Langkah 2 - Hitung n",
-            f"n = p &times; q = {p} &times; {q} = <b>{n}</b>",
-            f'Syarat ASCII: n &gt; 127 &rarr; {n} &gt; 127 <span class="ok">Terpenuhi</span>',
-            "s2",
-        ),
-        unsafe_allow_html=True,
-    )
+        # Langkah 2: n
+        st.markdown(
+            step_box(
+                "Langkah 2 - Hitung n",
+                f"n = p &times; q = {p} &times; {q} = <b>{n}</b>",
+                f'Syarat ASCII: n &gt; 127 &rarr; {n} &gt; 127 <span class="ok">Terpenuhi</span>',
+                "s2",
+            ),
+            unsafe_allow_html=True,
+        )
 
-    # Langkah 3: phi
-    st.markdown(
-        step_box(
-            "Langkah 3 - Hitung &phi;(n)",
-            f"&phi;(n) = (p &minus; 1) &times; (q &minus; 1) = {p - 1} &times; {q - 1} = <b>{phi}</b>",
-            css="s3",
-        ),
-        unsafe_allow_html=True,
-    )
+        # Langkah 3: phi
+        st.markdown(
+            step_box(
+                "Langkah 3 - Hitung &phi;(n)",
+                f"&phi;(n) = (p &minus; 1) &times; (q &minus; 1) = {p - 1} &times; {q - 1} = <b>{phi}</b>",
+                css="s3",
+            ),
+            unsafe_allow_html=True,
+        )
 
-    # Langkah 4: pilih e
-    tries = gcd_tries(int(e_input), phi)
-    mode = "dimasukkan manual" if e_input else "dipilih otomatis (bilangan ganjil terkecil &gt; 1)"
-    st.markdown(
-        step_box(
-            "Langkah 4 - Pilih e",
-            f"Syarat: 1 &lt; e &lt; &phi;(n) dan FPB(e, &phi;(n)) = 1 &rarr; e = <b>{e}</b>",
-            f"e {mode}.",
-            "s4",
-        ),
-        unsafe_allow_html=True,
-    )
-    st.markdown(
-        table(
-            ["e yang dicoba", f"FPB(e, {phi})", "Koprima?"],
-            [(te, g, "Ya" if g == 1 else "Tidak") for te, g in tries],
-        ),
-        unsafe_allow_html=True,
-    )
+        # Langkah 4: pilih e
+        tries = gcd_tries(int(e_input), phi)
+        mode = "dimasukkan manual" if e_input else "dipilih otomatis (bilangan ganjil terkecil &gt; 1)"
+        st.markdown(
+            step_box(
+                "Langkah 4 - Pilih e",
+                f"Syarat: 1 &lt; e &lt; &phi;(n) dan FPB(e, &phi;(n)) = 1 &rarr; e = <b>{e}</b>",
+                f"e {mode}.",
+                "s4",
+            ),
+            unsafe_allow_html=True,
+        )
+        st.markdown(
+            table(
+                ["e yang dicoba", f"FPB(e, {phi})", "Koprima?"],
+                [(te, g, "Ya" if g == 1 else "Tidak") for te, g in tries],
+            ),
+            unsafe_allow_html=True,
+        )
 
-    # Langkah 5: hitung d
-    rows_eu, g, coef = euclid_steps(e, phi)
-    st.markdown(
-        step_box(
-            "Langkah 5 - Hitung d (invers modular)",
-            f"e &times; d &equiv; 1 (mod &phi;(n)) &rarr; {e} &times; d &equiv; 1 (mod {phi})",
-            "Dihitung dengan algoritma Euclid yang diperluas. Kolom s adalah koefisien e; "
-            f"FPB akhir = {g}, s terakhir sebelum sisa 0 = {coef}.",
-        ),
-        unsafe_allow_html=True,
-    )
-    st.markdown(
-        table(["Langkah", "q (hasil bagi)", "r (sisa)", "s"], rows_eu),
-        unsafe_allow_html=True,
-    )
-    st.markdown(
-        step_box(
-            "Hasil d",
-            f"d = {coef} mod {phi} = <b>{d}</b>",
-            f'Verifikasi: e &times; d mod &phi;(n) = {e} &times; {d} mod {phi} = '
-            f'{(e * d) % phi} <span class="ok">Benar (harus 1)</span>',
-            "s3",
-        ),
-        unsafe_allow_html=True,
-    )
+        # Langkah 5: hitung d
+        rows_eu, g, coef = euclid_steps(e, phi)
+        st.markdown(
+            step_box(
+                "Langkah 5 - Hitung d (invers modular)",
+                f"e &times; d &equiv; 1 (mod &phi;(n)) &rarr; {e} &times; d &equiv; 1 (mod {phi})",
+                "Dihitung dengan algoritma Euclid yang diperluas. Kolom s adalah koefisien e; "
+                f"FPB akhir = {g}, s terakhir sebelum sisa 0 = {coef}.",
+            ),
+            unsafe_allow_html=True,
+        )
+        st.markdown(
+            table(["Langkah", "q (hasil bagi)", "r (sisa)", "s"], rows_eu),
+            unsafe_allow_html=True,
+        )
+        st.markdown(
+            step_box(
+                "Hasil d",
+                f"d = {coef} mod {phi} = <b>{d}</b>",
+                f'Verifikasi: e &times; d mod &phi;(n) = {e} &times; {d} mod {phi} = '
+                f'{(e * d) % phi} <span class="ok">Benar (harus 1)</span>',
+                "s3",
+            ),
+            unsafe_allow_html=True,
+        )
 
-    # Langkah 6: ringkasan kunci
-    st.markdown(
-        step_box(
-            "Langkah 6 - Kunci yang dihasilkan",
-            f"Kunci Publik (e, n) = <b>({e}, {n})</b><br>"
-            f"Kunci Privat (d, n) = <b>({d}, {n})</b>",
-            "Kunci publik dipakai untuk enkripsi, kunci privat untuk dekripsi.",
-            "s2",
-        ),
-        unsafe_allow_html=True,
-    )
+        # Langkah 6: ringkasan kunci
+        st.markdown(
+            step_box(
+                "Langkah 6 - Kunci yang dihasilkan",
+                f"Kunci Publik (e, n) = <b>({e}, {n})</b><br>"
+                f"Kunci Privat (d, n) = <b>({d}, {n})</b>",
+                "Kunci publik dipakai untuk enkripsi, kunci privat untuk dekripsi.",
+                "s2",
+            ),
+            unsafe_allow_html=True,
+        )
 
-    # ---------------- 3. Pesan ----------------
-    st.markdown('<div class="section-title">Pesan</div>', unsafe_allow_html=True)
-    tab_enc, tab_dec = st.tabs(["Enkripsi", "Dekripsi"])
 
     # ---- Tab Enkripsi: hanya kunci publik ----
     with tab_enc:
