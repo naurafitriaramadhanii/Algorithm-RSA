@@ -1,15 +1,15 @@
 """
-Aplikasi Enkripsi & Dekripsi RSA (input p dan q manual)
-Jalankan: python rsa_app.py
+Aplikasi Enkripsi & Dekripsi RSA (input p dan q manual) - versi Streamlit
+Jalankan lokal: streamlit run app.py
 Catatan: untuk edukasi. Jangan dipakai untuk mengamankan data sungguhan.
 """
-import tkinter as tk
-from tkinter import ttk, messagebox
 from math import gcd
+
+import streamlit as st
 
 
 # ---------------- Logika RSA ----------------
-def is_prime(n: int) -> bool:
+def is_prime(n):
     if n < 2:
         return False
     if n % 2 == 0:
@@ -22,8 +22,7 @@ def is_prime(n: int) -> bool:
     return True
 
 
-def mod_inverse(e: int, phi: int) -> int:
-    """Invers modular lewat extended Euclidean."""
+def mod_inverse(e, phi):
     old_r, r = e, phi
     old_s, s = 1, 0
     while r != 0:
@@ -43,20 +42,18 @@ def generate_keys(p, q, e=None):
     n = p * q
     phi = (p - 1) * (q - 1)
     if e is None:
-        # pilih e terkecil > 1 yang koprima dengan phi
         e = 3
         while e < phi and gcd(e, phi) != 1:
             e += 2
         if e >= phi:
             raise ValueError("Tidak ada e yang valid, coba p dan q lain.")
-    else:
-        if not (1 < e < phi) or gcd(e, phi) != 1:
-            raise ValueError(f"e harus 1 < e < {phi} dan koprima dengan phi(n).")
+    elif not (1 < e < phi) or gcd(e, phi) != 1:
+        raise ValueError(f"e harus 1 < e < {phi} dan koprima dengan phi(n).")
     d = mod_inverse(e, phi)
     return n, phi, e, d
 
 
-def encrypt(text: str, e: int, n: int) -> str:
+def encrypt(text, e, n):
     codes = [ord(c) for c in text]
     if codes and max(codes) >= n:
         raise ValueError(
@@ -66,133 +63,60 @@ def encrypt(text: str, e: int, n: int) -> str:
     return " ".join(str(pow(m, e, n)) for m in codes)
 
 
-def decrypt(cipher: str, d: int, n: int) -> str:
+def decrypt(cipher, d, n):
     nums = [int(x) for x in cipher.split()]
     return "".join(chr(pow(c, d, n)) for c in nums)
 
 
-# ---------------- GUI ----------------
-class RSAApp(tk.Tk):
-    def __init__(self):
-        super().__init__()
-        self.title("Aplikasi Enkripsi & Dekripsi RSA")
-        self.geometry("720x640")
-        self.keys = None  # (n, phi, e, d)
-        self._build()
+# ---------------- Tampilan ----------------
+st.set_page_config(page_title="Enkripsi & Dekripsi RSA", page_icon="🔐")
+st.title("🔐 Enkripsi & Dekripsi RSA")
+st.caption("Masukkan sendiri nilai p dan q (bilangan prima).")
 
-    def _build(self):
-        pad = {"padx": 8, "pady": 4}
+st.subheader("1. Input Kunci")
+col1, col2, col3 = st.columns(3)
+p = col1.number_input("p (prima)", min_value=2, value=1009, step=1)
+q = col2.number_input("q (prima)", min_value=2, value=1013, step=1)
+e_input = col3.number_input("e (0 = otomatis)", min_value=0, value=0, step=1)
 
-        # --- Input kunci ---
-        frm = ttk.LabelFrame(self, text="1. Input Kunci")
-        frm.pack(fill="x", **pad)
+keys = None
+try:
+    keys = generate_keys(int(p), int(q), int(e_input) or None)
+except ValueError as ex:
+    st.error(str(ex))
 
-        ttk.Label(frm, text="p (prima):").grid(row=0, column=0, sticky="e", **pad)
-        self.ent_p = ttk.Entry(frm, width=20)
-        self.ent_p.grid(row=0, column=1, **pad)
+if keys:
+    n, phi, e, d = keys
+    st.success("Kunci berhasil dibuat.")
+    st.code(
+        f"n = p x q          = {n}\n"
+        f"phi(n) = (p-1)(q-1) = {phi}\n"
+        f"Kunci Publik  (e, n) = ({e}, {n})\n"
+        f"Kunci Privat  (d, n) = ({d}, {n})"
+    )
 
-        ttk.Label(frm, text="q (prima):").grid(row=0, column=2, sticky="e", **pad)
-        self.ent_q = ttk.Entry(frm, width=20)
-        self.ent_q.grid(row=0, column=3, **pad)
+    tab_enc, tab_dec = st.tabs(["Enkripsi", "Dekripsi"])
 
-        ttk.Label(frm, text="e (opsional):").grid(row=1, column=0, sticky="e", **pad)
-        self.ent_e = ttk.Entry(frm, width=20)
-        self.ent_e.grid(row=1, column=1, **pad)
+    with tab_enc:
+        plain = st.text_area("Plaintext", height=120, key="plain")
+        if st.button("Enkripsi"):
+            if not plain:
+                st.warning("Isi plaintext dulu.")
+            else:
+                try:
+                    st.text_area("Ciphertext (salin untuk dekripsi)",
+                                 encrypt(plain, e, n), height=120)
+                except ValueError as ex:
+                    st.error(str(ex))
 
-        ttk.Button(frm, text="Generate Kunci", command=self.on_generate).grid(
-            row=1, column=3, sticky="e", **pad
-        )
-
-        self.lbl_keys = ttk.Label(frm, text="Belum ada kunci.", justify="left")
-        self.lbl_keys.grid(row=2, column=0, columnspan=4, sticky="w", **pad)
-
-        # --- Plaintext ---
-        frm2 = ttk.LabelFrame(self, text="2. Enkripsi (Plaintext → Ciphertext)")
-        frm2.pack(fill="both", expand=True, **pad)
-        self.txt_plain = tk.Text(frm2, height=5, wrap="word")
-        self.txt_plain.pack(fill="both", expand=True, **pad)
-        ttk.Button(frm2, text="Enkripsi", command=self.on_encrypt).pack(anchor="e", **pad)
-
-        # --- Ciphertext ---
-        frm3 = ttk.LabelFrame(self, text="3. Dekripsi (Ciphertext → Plaintext)")
-        frm3.pack(fill="both", expand=True, **pad)
-        self.txt_cipher = tk.Text(frm3, height=5, wrap="word")
-        self.txt_cipher.pack(fill="both", expand=True, **pad)
-        ttk.Button(frm3, text="Dekripsi", command=self.on_decrypt).pack(anchor="e", **pad)
-
-        # --- Hasil ---
-        frm4 = ttk.LabelFrame(self, text="Hasil")
-        frm4.pack(fill="both", expand=True, **pad)
-        self.txt_out = tk.Text(frm4, height=5, wrap="word", state="normal")
-        self.txt_out.pack(fill="both", expand=True, **pad)
-
-    # --- helpers ---
-    def _set_out(self, text):
-        self.txt_out.delete("1.0", "end")
-        self.txt_out.insert("1.0", text)
-
-    def _need_keys(self):
-        if not self.keys:
-            messagebox.showwarning("Kunci belum ada", "Generate kunci dulu (isi p dan q).")
-            return False
-        return True
-
-    # --- actions ---
-    def on_generate(self):
-        try:
-            p = int(self.ent_p.get().strip())
-            q = int(self.ent_q.get().strip())
-            e_txt = self.ent_e.get().strip()
-            e = int(e_txt) if e_txt else None
-            self.keys = generate_keys(p, q, e)
-        except ValueError as ex:
-            self.keys = None
-            messagebox.showerror("Error", str(ex))
-            return
-        n, phi, e, d = self.keys
-        self.lbl_keys.config(
-            text=(
-                f"n = p × q = {n}\n"
-                f"φ(n) = (p-1)(q-1) = {phi}\n"
-                f"Kunci Publik  (e, n) = ({e}, {n})\n"
-                f"Kunci Privat  (d, n) = ({d}, {n})"
-            )
-        )
-
-    def on_encrypt(self):
-        if not self._need_keys():
-            return
-        n, _, e, _ = self.keys
-        plain = self.txt_plain.get("1.0", "end-1c")
-        if not plain:
-            messagebox.showinfo("Kosong", "Isi plaintext dulu.")
-            return
-        try:
-            cipher = encrypt(plain, e, n)
-        except ValueError as ex:
-            messagebox.showerror("Error", str(ex))
-            return
-        self._set_out(cipher)
-        self.txt_cipher.delete("1.0", "end")
-        self.txt_cipher.insert("1.0", cipher)
-
-    def on_decrypt(self):
-        if not self._need_keys():
-            return
-        n, _, _, d = self.keys
-        cipher = self.txt_cipher.get("1.0", "end-1c").strip()
-        if not cipher:
-            messagebox.showinfo("Kosong", "Isi ciphertext dulu.")
-            return
-        try:
-            plain = decrypt(cipher, d, n)
-        except (ValueError, OverflowError):
-            messagebox.showerror(
-                "Error", "Ciphertext tidak valid atau kunci (p, q) tidak cocok."
-            )
-            return
-        self._set_out(plain)
-
-
-if __name__ == "__main__":
-    RSAApp().mainloop()
+    with tab_dec:
+        cipher = st.text_area("Ciphertext (angka dipisah spasi)", height=120, key="cipher")
+        if st.button("Dekripsi"):
+            if not cipher.strip():
+                st.warning("Isi ciphertext dulu.")
+            else:
+                try:
+                    st.text_area("Plaintext hasil dekripsi",
+                                 decrypt(cipher, d, n), height=120)
+                except (ValueError, OverflowError):
+                    st.error("Ciphertext tidak valid atau kunci (p, q) tidak cocok.")
