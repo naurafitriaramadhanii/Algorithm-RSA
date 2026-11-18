@@ -1,836 +1,194 @@
-
 """
-RSA CRYPTOGRAPHY STUDIO
-Aplikasi Enkripsi & Dekripsi RSA
-Jalankan: streamlit run app.py
+Aplikasi Enkripsi & Dekripsi RSA (input p dan q manual) - versi Streamlit
+Jalankan lokal: streamlit run app.py
+Catatan: untuk edukasi. Jangan dipakai untuk mengamankan data sungguhan.
 """
-
 from math import gcd
+
 import streamlit as st
 
 
-# =====================================================
-# 1. KONFIGURASI HALAMAN
-# =====================================================
-
-st.set_page_config(
-    page_title="RSA Cryptography Studio",
-    page_icon="🔐",
-    layout="wide",
-    initial_sidebar_state="collapsed"
-)
-
-
-# =====================================================
-# 2. CUSTOM CSS
-# =====================================================
-
-st.markdown("""
-<style>
-
-/* IMPORT FONT */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap');
-
-/* GLOBAL */
-.stApp {
-    background: linear-gradient(135deg, #090d20 0%, #11152e 50%, #171438 100%);
-    color: #f1f5ff;
-    font-family: 'Inter', sans-serif;
-}
-
-.block-container {
-    padding-top: 2rem;
-    padding-bottom: 3rem;
-    max-width: 1250px;
-}
-
-/* HIDE STREAMLIT ELEMENTS */
-#MainMenu {visibility: hidden;}
-footer {visibility: hidden;}
-header {visibility: hidden;}
-
-/* TEXT */
-h1, h2, h3 {
-    font-family: 'Space Grotesk', sans-serif !important;
-    color: #ffffff !important;
-}
-
-p, label, span {
-    color: #d5dcf5;
-}
-
-/* HERO */
-.hero {
-    background: linear-gradient(120deg, #312e81, #6d28d9, #2563eb);
-    padding: 42px 38px;
-    border-radius: 25px;
-    margin-bottom: 30px;
-    position: relative;
-    overflow: hidden;
-    box-shadow: 0 12px 40px rgba(91, 64, 220, 0.25);
-}
-
-.hero h1 {
-    font-size: 42px !important;
-    font-weight: 800;
-    margin-bottom: 8px;
-}
-
-.hero p {
-    font-size: 15px;
-    color: #e0e7ff;
-}
-
-.hero-tag {
-    display: inline-block;
-    background: rgba(255,255,255,0.15);
-    border: 1px solid rgba(255,255,255,0.25);
-    padding: 7px 14px;
-    border-radius: 30px;
-    font-size: 12px;
-    margin-bottom: 15px;
-    color: white;
-}
-
-/* SECTION */
-.section-title {
-    font-size: 23px;
-    font-weight: 700;
-    color: #ffffff;
-    margin-top: 30px;
-    margin-bottom: 15px;
-    font-family: 'Space Grotesk', sans-serif;
-}
-
-.section-desc {
-    color: #a5b4d4;
-    font-size: 13px;
-    margin-bottom: 20px;
-}
-
-/* CARDS */
-.info-card {
-    background: linear-gradient(145deg, #1b2142, #151a35);
-    border: 1px solid #303b69;
-    border-radius: 18px;
-    padding: 20px;
-    min-height: 125px;
-    transition: 0.3s ease;
-}
-
-.info-card:hover {
-    border-color: #818cf8;
-    transform: translateY(-4px);
-}
-
-.card-label {
-    font-size: 12px;
-    color: #a5b4d4;
-    margin-bottom: 12px;
-}
-
-.card-value {
-    font-size: 28px;
-    font-weight: 800;
-    color: #a5b4fc;
-    font-family: 'Space Grotesk', sans-serif;
-    overflow-wrap: anywhere;
-}
-
-.card-icon {
-    font-size: 23px;
-    margin-bottom: 8px;
-}
-
-/* KEY CARDS */
-.key-card {
-    background: linear-gradient(135deg, #22265a, #312e81);
-    border: 1px solid #6366f1;
-    border-radius: 18px;
-    padding: 22px;
-    min-height: 150px;
-}
-
-.key-card.private {
-    background: linear-gradient(135deg, #3b1f59, #581c87);
-    border-color: #c084fc;
-}
-
-.key-title {
-    font-size: 13px;
-    color: #c7d2fe;
-    margin-bottom: 12px;
-}
-
-.key-value {
-    font-size: 20px;
-    font-weight: 700;
-    color: white;
-    overflow-wrap: anywhere;
-}
-
-/* INPUT */
-.stTextInput input,
-.stTextArea textarea,
-.stNumberInput input {
-    background-color: #171e3b !important;
-    color: white !important;
-    border: 1px solid #394675 !important;
-    border-radius: 12px !important;
-}
-
-.stTextArea textarea {
-    line-height: 1.7;
-}
-
-.stNumberInput button {
-    background: #312e81 !important;
-    color: white !important;
-}
-
-/* BUTTON */
-.stButton > button {
-    background: linear-gradient(90deg, #6366f1, #8b5cf6);
-    color: white !important;
-    border: none;
-    border-radius: 12px;
-    padding: 12px 20px;
-    font-weight: 700;
-    min-height: 45px;
-    transition: 0.3s;
-}
-
-.stButton > button:hover {
-    background: linear-gradient(90deg, #4f46e5, #7c3aed);
-    border: 1px solid #a5b4fc;
-    transform: translateY(-2px);
-}
-
-/* TABS */
-.stTabs [data-baseweb="tab-list"] {
-    gap: 10px;
-    background: #171e3b;
-    padding: 8px;
-    border-radius: 14px;
-}
-
-.stTabs [data-baseweb="tab"] {
-    background: transparent;
-    border-radius: 10px;
-    color: #c7d2fe;
-    padding: 12px 20px;
-}
-
-.stTabs [aria-selected="true"] {
-    background: #4f46e5 !important;
-    color: white !important;
-}
-
-/* ALERT */
-.stAlert {
-    border-radius: 12px;
-}
-
-/* PROCESS */
-.process-card {
-    background: #1a2142;
-    border: 1px solid #374578;
-    border-radius: 15px;
-    padding: 17px;
-    text-align: center;
-    height: 100%;
-}
-
-.process-number {
-    color: #a5b4fc;
-    font-size: 25px;
-    font-weight: 800;
-}
-
-.process-name {
-    color: white;
-    font-weight: 700;
-    margin-top: 7px;
-}
-
-.process-desc {
-    color: #a5b4d4;
-    font-size: 12px;
-    margin-top: 7px;
-}
-
-/* FOOTER */
-.footer {
-    text-align: center;
-    color: #7885aa;
-    font-size: 12px;
-    border-top: 1px solid #30385e;
-    padding-top: 25px;
-    margin-top: 50px;
-}
-
-</style>
-""", unsafe_allow_html=True)
-
-
-# =====================================================
-# 3. LOGIKA RSA
-# =====================================================
-
+# ---------------- Logika RSA ----------------
 def is_prime(n):
     if n < 2:
         return False
-
     if n % 2 == 0:
         return n == 2
-
     i = 3
-
     while i * i <= n:
         if n % i == 0:
             return False
         i += 2
-
     return True
 
 
 def mod_inverse(e, phi):
     old_r, r = e, phi
     old_s, s = 1, 0
-
     while r != 0:
-        quotient = old_r // r
-
-        old_r, r = r, old_r - quotient * r
-        old_s, s = s, old_s - quotient * s
-
+        q = old_r // r
+        old_r, r = r, old_r - q * r
+        old_s, s = s, old_s - q * s
     if old_r != 1:
-        raise ValueError("Invers modular tidak ditemukan.")
-
+        raise ValueError("e tidak punya invers modular terhadap phi(n)")
     return old_s % phi
 
 
 def generate_keys(p, q, e=None):
-
     if not is_prime(p) or not is_prime(q):
         raise ValueError("p dan q harus bilangan prima.")
-
     if p == q:
         raise ValueError("p dan q tidak boleh sama.")
-
     n = p * q
     phi = (p - 1) * (q - 1)
-
-    if phi <= 3:
-        raise ValueError("Gunakan bilangan prima yang lebih besar.")
-
     if e is None:
         e = 3
-
         while e < phi and gcd(e, phi) != 1:
             e += 2
-
         if e >= phi:
-            raise ValueError("Tidak ditemukan nilai e yang valid.")
-
+            raise ValueError("Tidak ada e yang valid, coba p dan q lain.")
     elif not (1 < e < phi) or gcd(e, phi) != 1:
-        raise ValueError(
-            f"e harus memenuhi 1 < e < {phi} "
-            "dan FPB(e, phi) = 1."
-        )
-
+        raise ValueError(f"e harus 1 < e < {phi} dan koprima dengan phi(n).")
     d = mod_inverse(e, phi)
-
     return n, phi, e, d
 
 
-def encrypt(message, e, n):
-
-    codes = [ord(char) for char in message]
-
+def encrypt(text, e, n):
+    codes = [ord(c) for c in text]
     if codes and max(codes) >= n:
         raise ValueError(
-            f"Nilai n = {n} terlalu kecil. "
-            f"Karakter terbesar membutuhkan n > {max(codes)}."
+            f"n ({n}) terlalu kecil untuk pesan ini. "
+            f"Butuh n > {max(codes)}. Gunakan p dan q yang lebih besar."
         )
-
-    encrypted = [pow(m, e, n) for m in codes]
-
-    return " ".join(map(str, encrypted))
+    return " ".join(str(pow(m, e, n)) for m in codes)
 
 
 def decrypt(cipher, d, n):
-
-    try:
-        nums = [int(x) for x in cipher.split()]
-    except ValueError:
-        raise ValueError("Ciphertext harus berisi angka yang dipisahkan spasi.")
-
-    if not nums:
-        raise ValueError("Ciphertext masih kosong.")
-
-    if any(x < 0 or x >= n for x in nums):
-        raise ValueError("Terdapat angka ciphertext di luar rentang yang valid.")
-
-    decrypted = [pow(c, d, n) for c in nums]
-
-    try:
-        return "".join(chr(x) for x in decrypted)
-    except ValueError:
-        raise ValueError("Hasil dekripsi tidak valid.")
+    nums = [int(x) for x in cipher.split()]
+    return "".join(chr(pow(c, d, n)) for c in nums)
 
 
-# =====================================================
-# 4. HEADER / HERO SECTION
-# =====================================================
+# ---------------- Tampilan ----------------
+st.set_page_config(page_title="Enkripsi & Dekripsi RSA", page_icon="🔐", layout="centered")
 
-st.markdown("""
+st.markdown(
+    """
+<style>
+.stApp {
+    background: linear-gradient(135deg, #e0f2fe 0%, #f3e8ff 50%, #fce7f3 100%);
+}
+.hero {
+    background: linear-gradient(120deg, #6366f1, #8b5cf6, #ec4899);
+    padding: 28px 24px; border-radius: 20px; color: white; text-align: center;
+    box-shadow: 0 10px 30px rgba(139, 92, 246, .35); margin-bottom: 18px;
+}
+.hero h1 { margin: 0; font-size: 2.2rem; color: white; }
+.hero p  { margin: 6px 0 0; opacity: .95; font-size: 1.05rem; }
+.section-title {
+    display: inline-block; background: white; color: #4f46e5;
+    padding: 6px 16px; border-radius: 999px; font-weight: 700;
+    box-shadow: 0 3px 10px rgba(79, 70, 229, .15); margin: 14px 0 8px;
+}
+.key-card {
+    border-radius: 16px; padding: 16px 18px; color: white;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, .15); margin-bottom: 10px;
+}
+.key-card .label { font-size: .85rem; opacity: .9; letter-spacing: .5px; }
+.key-card .value { font-size: 1.15rem; font-weight: 700; word-break: break-all; }
+.k-n   { background: linear-gradient(135deg, #f59e0b, #f97316); }
+.k-phi { background: linear-gradient(135deg, #10b981, #14b8a6); }
+.k-pub { background: linear-gradient(135deg, #3b82f6, #06b6d4); }
+.k-prv { background: linear-gradient(135deg, #ec4899, #ef4444); }
+.result-box {
+    background: white; border-left: 8px solid #8b5cf6; border-radius: 12px;
+    padding: 14px 16px; color: #1f2937; word-break: break-all;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, .08); margin-top: 8px;
+}
+.result-box.dec { border-left-color: #10b981; }
+.result-title { font-weight: 700; margin-bottom: 4px; color: #6d28d9; }
+.result-box.dec .result-title { color: #059669; }
+div.stButton > button {
+    background: linear-gradient(120deg, #6366f1, #ec4899); color: white;
+    border: none; border-radius: 12px; padding: 8px 26px; font-weight: 700;
+    box-shadow: 0 5px 14px rgba(236, 72, 153, .35); transition: transform .15s;
+}
+div.stButton > button:hover { transform: translateY(-2px) scale(1.03); color: white; }
+button[data-baseweb="tab"] { font-weight: 700; font-size: 1.05rem; }
+</style>
 <div class="hero">
-    <div class="hero-tag">✦ CRYPTOGRAPHY LEARNING PLATFORM</div>
-    <h1>🔐 RSA Cryptography Studio</h1>
-    <p>
-        Explore the world of cryptography through RSA.
-        Generate keys, encrypt messages, and decrypt ciphertext
-        in one interactive platform.
-    </p>
+    <h1>🔐 Enkripsi & Dekripsi RSA</h1>
+    <p>Masukkan sendiri nilai <b>p</b> dan <b>q</b>, lalu amankan pesanmu ✨</p>
 </div>
-""", unsafe_allow_html=True)
-
-
-# =====================================================
-# 5. SIDEBAR INFORMASI
-# =====================================================
-
-with st.sidebar:
-
-    st.markdown("## 🔐 RSA Studio")
-
-    st.caption("Cryptography Learning Platform")
-
-    st.divider()
-
-    st.markdown("### 📚 About RSA")
-
-    st.write("""
-    RSA merupakan algoritma kriptografi asimetris
-    yang menggunakan dua jenis kunci:
-
-    - 🔓 Public Key
-    - 🔒 Private Key
-
-    RSA menggunakan konsep bilangan prima,
-    aritmetika modular, dan faktorisasi.
-    """)
-
-    st.divider()
-
-    st.markdown("### ⚙️ Algorithm")
-
-    st.code("""
-n = p × q
-
-φ(n) = (p-1)(q-1)
-
-C = M^e mod n
-
-M = C^d mod n
-    """)
-
-    st.info("Aplikasi ini dibuat untuk tujuan pembelajaran.")
-
-
-# =====================================================
-# 6. INPUT KUNCI
-# =====================================================
-
-st.markdown(
-    '<div class="section-title">⚙️ Key Generator</div>',
-    unsafe_allow_html=True
+""",
+    unsafe_allow_html=True,
 )
 
-st.markdown(
-    '<div class="section-desc">Masukkan dua bilangan prima untuk menghasilkan pasangan kunci RSA.</div>',
-    unsafe_allow_html=True
-)
 
+def key_card(css, label, value):
+    return (
+        f'<div class="key-card {css}"><div class="label">{label}</div>'
+        f'<div class="value">{value}</div></div>'
+    )
+
+
+def result_box(title, text, css=""):
+    safe = text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+    return (
+        f'<div class="result-box {css}"><div class="result-title">{title}</div>'
+        f"{safe}</div>"
+    )
+
+
+st.markdown('<div class="section-title">🔑 1. Input Kunci</div>', unsafe_allow_html=True)
 col1, col2, col3 = st.columns(3)
-
-with col1:
-    p = st.number_input(
-        "🔢 Bilangan Prima (p)",
-        min_value=2,
-        value=1009,
-        step=1
-    )
-
-with col2:
-    q = st.number_input(
-        "🔢 Bilangan Prima (q)",
-        min_value=2,
-        value=1013,
-        step=1
-    )
-
-with col3:
-    e_input = st.number_input(
-        "🔑 Public Exponent (e)",
-        min_value=0,
-        value=0,
-        step=1,
-        help="Isi 0 untuk menghasilkan e secara otomatis."
-    )
-
-
-# =====================================================
-# 7. GENERATE KEYS
-# =====================================================
+p = col1.number_input("p (prima)", min_value=2, value=1009, step=1)
+q = col2.number_input("q (prima)", min_value=2, value=1013, step=1)
+e_input = col3.number_input("e (0 = otomatis)", min_value=0, value=0, step=1)
 
 keys = None
-
 try:
-    keys = generate_keys(
-        int(p),
-        int(q),
-        int(e_input) if e_input != 0 else None
-    )
-
+    keys = generate_keys(int(p), int(q), int(e_input) or None)
 except ValueError as ex:
-    st.error(f"⚠️ {ex}")
-
+    st.error(str(ex))
 
 if keys:
-
     n, phi, e, d = keys
+    st.toast("Kunci berhasil dibuat!", icon="✅")
 
-    st.success("✅ Pasangan kunci RSA berhasil dihasilkan!")
+    c1, c2 = st.columns(2)
+    c1.markdown(key_card("k-n", "n = p × q", n), unsafe_allow_html=True)
+    c2.markdown(key_card("k-phi", "φ(n) = (p-1)(q-1)", phi), unsafe_allow_html=True)
+    c3, c4 = st.columns(2)
+    c3.markdown(key_card("k-pub", "🔓 Kunci Publik (e, n)", f"({e}, {n})"), unsafe_allow_html=True)
+    c4.markdown(key_card("k-prv", "🔒 Kunci Privat (d, n)", f"({d}, {n})"), unsafe_allow_html=True)
 
-    # DASHBOARD METRICS
-
-    st.markdown(
-        '<div class="section-title">📊 RSA Key Dashboard</div>',
-        unsafe_allow_html=True
-    )
-
-    c1, c2, c3, c4 = st.columns(4)
-
-    metrics = [
-        (c1, "🔢", "Prime Number p", p),
-        (c2, "🔢", "Prime Number q", q),
-        (c3, "🔷", "Modulus n", n),
-        (c4, "🧮", "Totient φ(n)", phi)
-    ]
-
-    for col, icon, label, value in metrics:
-
-        with col:
-            st.markdown(f"""
-            <div class="info-card">
-                <div class="card-icon">{icon}</div>
-                <div class="card-label">{label}</div>
-                <div class="card-value">{value:,}</div>
-            </div>
-            """, unsafe_allow_html=True)
-
-    # KEY DISPLAY
-
-    st.markdown(
-        '<div class="section-title">🗝️ Generated Key Pairs</div>',
-        unsafe_allow_html=True
-    )
-
-    key1, key2 = st.columns(2)
-
-    with key1:
-        st.markdown(f"""
-        <div class="key-card">
-            <div class="key-title">🔓 PUBLIC KEY</div>
-            <div class="key-value">(e, n)</div>
-            <br>
-            <div class="key-value">({e}, {n})</div>
-            <p style="color:#c7d2fe;font-size:12px;">
-                Digunakan untuk mengenkripsi pesan.
-            </p>
-        </div>
-        """, unsafe_allow_html=True)
-
-    with key2:
-        st.markdown(f"""
-        <div class="key-card private">
-            <div class="key-title">🔒 PRIVATE KEY</div>
-            <div class="key-value">(d, n)</div>
-            <br>
-            <div class="key-value">({d}, {n})</div>
-            <p style="color:#e9d5ff;font-size:12px;">
-                Digunakan untuk mendekripsi pesan.
-            </p>
-        </div>
-        """, unsafe_allow_html=True)
-
-    with st.expander("📖 Lihat proses pembentukan kunci RSA"):
-
-        st.markdown(f"""
-        **Langkah 1 — Menghitung modulus**
-
-        n = p × q = {p} × {q} = **{n}**
-
-        **Langkah 2 — Menghitung Euler's Totient**
-
-        φ(n) = (p - 1)(q - 1)
-
-        = ({p}-1) × ({q}-1)
-
-        = **{phi}**
-
-        **Langkah 3 — Menentukan Public Exponent**
-
-        e = **{e}**
-
-        FPB(e, φ(n)) = {gcd(e, phi)}
-
-        **Langkah 4 — Menghitung Private Exponent**
-
-        d = e⁻¹ mod φ(n)
-
-        d = **{d}**
-
-        Sehingga diperoleh:
-
-        - Public Key = ({e}, {n})
-        - Private Key = ({d}, {n})
-        """)
-
-    # =================================================
-    # 8. ENCRYPTION & DECRYPTION
-    # =================================================
-
-    st.markdown(
-        '<div class="section-title">💻 Message Encryption & Decryption</div>',
-        unsafe_allow_html=True
-    )
-
-    st.markdown(
-        '<div class="section-desc">Ubah pesan menjadi ciphertext atau kembalikan ciphertext menjadi plaintext.</div>',
-        unsafe_allow_html=True
-    )
-
-    tab_enc, tab_dec, tab_info = st.tabs([
-        "🔒 ENCRYPTION",
-        "🔓 DECRYPTION",
-        "📚 HOW RSA WORKS"
-    ])
-
-    # ================= ENCRYPTION =================
+    st.markdown('<div class="section-title">💬 2. Pesan</div>', unsafe_allow_html=True)
+    tab_enc, tab_dec = st.tabs(["🔐 Enkripsi", "🔓 Dekripsi"])
 
     with tab_enc:
-
-        st.markdown("### ✉️ Encrypt Your Message")
-
-        st.caption(
-            "Masukkan pesan yang ingin dienkripsi menggunakan Public Key."
-        )
-
-        plain = st.text_area(
-            "Plaintext",
-            placeholder="Contoh: HARI INI BELAJAR KRIPTOGRAFI...",
-            height=130,
-            key="plain"
-        )
-
-        st.caption(f"Karakter: {len(plain)}")
-
-        if st.button("🔐 ENCRYPT MESSAGE", key="btn_encrypt", use_container_width=True):
-
+        plain = st.text_area("Plaintext", height=120, key="plain",
+                             placeholder="Ketik pesan rahasiamu di sini...")
+        if st.button("🚀 Enkripsi"):
             if not plain:
-                st.warning("Masukkan plaintext terlebih dahulu.")
-
+                st.warning("Isi plaintext dulu.")
             else:
                 try:
-
-                    result = encrypt(plain, e, n)
-
-                    st.session_state["encrypted_result"] = result
-
-                    st.success("✨ Pesan berhasil dienkripsi!")
-
+                    cipher_out = encrypt(plain, e, n)
+                    st.markdown(result_box("🔐 Ciphertext", cipher_out), unsafe_allow_html=True)
+                    st.caption("Salin angka di atas ke tab Dekripsi.")
                 except ValueError as ex:
                     st.error(str(ex))
-
-        if "encrypted_result" in st.session_state:
-
-            st.markdown("#### 📦 Ciphertext Result")
-
-            st.text_area(
-                "Hasil Enkripsi",
-                value=st.session_state["encrypted_result"],
-                height=130,
-                key="enc_output"
-            )
-
-            st.caption(
-                "Ciphertext merupakan kumpulan angka hasil proses enkripsi."
-            )
-
-            st.code(st.session_state["encrypted_result"], language="text")
-
-    # ================= DECRYPTION =================
 
     with tab_dec:
-
-        st.markdown("### 🔓 Decrypt Your Message")
-
-        st.caption(
-            "Masukkan ciphertext untuk mengembalikan pesan asli menggunakan Private Key."
-        )
-
-        cipher = st.text_area(
-            "Ciphertext",
-            placeholder="Contoh: 12345 67890 23456",
-            height=130,
-            key="cipher"
-        )
-
-        if st.button("🔓 DECRYPT MESSAGE", key="btn_decrypt", use_container_width=True):
-
+        cipher = st.text_area("Ciphertext (angka dipisah spasi)", height=120, key="cipher",
+                              placeholder="Tempel ciphertext di sini...")
+        if st.button("🔑 Dekripsi"):
             if not cipher.strip():
-                st.warning("Masukkan ciphertext terlebih dahulu.")
-
+                st.warning("Isi ciphertext dulu.")
             else:
                 try:
-
-                    result = decrypt(cipher, d, n)
-
-                    st.session_state["decrypted_result"] = result
-
-                    st.success("✨ Pesan berhasil didekripsi!")
-
-                except ValueError as ex:
-                    st.error(str(ex))
-
-        if "decrypted_result" in st.session_state:
-
-            st.markdown("#### 💬 Decrypted Plaintext")
-
-            st.text_area(
-                "Hasil Dekripsi",
-                value=st.session_state["decrypted_result"],
-                height=130,
-                key="dec_output"
-            )
-
-    # ================= HOW RSA WORKS =================
-
-    with tab_info:
-
-        st.markdown("### 🧠 Understanding RSA Process")
-
-        st.write(
-            "RSA bekerja melalui dua proses utama, yaitu enkripsi "
-            "dan dekripsi menggunakan pasangan kunci yang berbeda."
-        )
-
-        st.markdown("#### 🔒 Encryption Flow")
-
-        a, b, c = st.columns(3)
-
-        with a:
-            st.markdown("""
-            <div class="process-card">
-                <div class="process-number">01</div>
-                <div class="process-name">Plaintext</div>
-                <div class="process-desc">
-                    Pesan asli diubah menjadi nilai numerik.
-                </div>
-            </div>
-            """, unsafe_allow_html=True)
-
-        with b:
-            st.markdown("""
-            <div class="process-card">
-                <div class="process-number">02</div>
-                <div class="process-name">Encryption</div>
-                <div class="process-desc">
-                    Menggunakan Public Key untuk melakukan enkripsi.
-                </div>
-            </div>
-            """, unsafe_allow_html=True)
-
-        with c:
-            st.markdown("""
-            <div class="process-card">
-                <div class="process-number">03</div>
-                <div class="process-name">Ciphertext</div>
-                <div class="process-desc">
-                    Menghasilkan pesan dalam bentuk terenkripsi.
-                </div>
-            </div>
-            """, unsafe_allow_html=True)
-
-        st.markdown("#### 🔓 Decryption Flow")
-
-        a, b, c = st.columns(3)
-
-        with a:
-            st.markdown("""
-            <div class="process-card">
-                <div class="process-number">01</div>
-                <div class="process-name">Ciphertext</div>
-                <div class="process-desc">
-                    Memasukkan pesan yang sudah dienkripsi.
-                </div>
-            </div>
-            """, unsafe_allow_html=True)
-
-        with b:
-            st.markdown("""
-            <div class="process-card">
-                <div class="process-number">02</div>
-                <div class="process-name">Decryption</div>
-                <div class="process-desc">
-                    Menggunakan Private Key untuk mendekripsi.
-                </div>
-            </div>
-            """, unsafe_allow_html=True)
-
-        with c:
-            st.markdown("""
-            <div class="process-card">
-                <div class="process-number">03</div>
-                <div class="process-name">Plaintext</div>
-                <div class="process-desc">
-                    Mendapatkan kembali pesan aslinya.
-                </div>
-            </div>
-            """, unsafe_allow_html=True)
-
-        st.divider()
-
-        st.markdown("#### 📐 RSA Mathematical Formula")
-
-        col1, col2 = st.columns(2)
-
-        with col1:
-            st.info("🔒 ENCRYPTION")
-            st.latex(r"C = M^e \mod n")
-
-        with col2:
-            st.success("🔓 DECRYPTION")
-            st.latex(r"M = C^d \mod n")
-
-        st.caption("""
-        M = Plaintext | C = Ciphertext | e = Public Exponent
-        | d = Private Exponent | n = Modulus
-        """)
-
-
-# =====================================================
-# 9. FOOTER
-# =====================================================
-
-st.markdown("""
-<div class="footer">
-    <p>🔐 RSA CRYPTOGRAPHY STUDIO</p>
-    <p>Interactive Cryptography Learning Platform</p>
-    <p>Made for Educational Purposes ✦</p>
-    <p>© 2026 RSA Learning Project</p>
-</div>
-""", unsafe_allow_html=True)
+                    plain_out = decrypt(cipher, d, n)
+                    st.markdown(result_box("🔓 Plaintext", plain_out, "dec"), unsafe_allow_html=True)
+                    st.balloons()
+                except (ValueError, OverflowError):
+                    st.error("Ciphertext tidak valid atau kunci (p, q) tidak cocok.")
