@@ -1,20 +1,15 @@
 """
-Kalkulator RSA (input p dan q manual) - versi Streamlit, alfabet 26 huruf
+Kalkulator RSA (input p dan q manual) - versi Streamlit
 Tampilan: kartu kafe ala "carrd" (cokelat bergaris, kanopi, tab, pita header).
-Memakai 26 huruf: A=01, B=02, ..., Z=26 (tiap huruf ditulis 2 digit).
-Kode huruf disambung, lalu dipisah menjadi blok k digit
+Memakai kode ASCII (0-127) untuk tiap karakter pesan.
+Kode ASCII ditulis 3 digit, disambung, lalu dipisah menjadi blok k digit
 (k bisa dipilih: 2, 3, dst.) dan tiap blok diproses dengan RSA.
-Ada juga fitur Tanda Tangan Digital: hash SHA-256 pesan, lalu ditandatangani dengan
-kunci privat RSA dan diverifikasi dengan kunci publik.
 Jalankan lokal: streamlit run app.py
 Catatan: untuk edukasi. Jangan dipakai untuk mengamankan data sungguhan.
 """
-import hashlib
 from math import gcd, isqrt
 
 import streamlit as st
-
-MAX_CODE = 26  # A=1 ... Z=26
 
 
 # ---------------- Logika RSA ----------------
@@ -50,9 +45,9 @@ def generate_keys(p, q, e=None):
         raise ValueError("p dan q tidak boleh sama.")
     n = p * q
     phi = (p - 1) * (q - 1)
-    if n <= MAX_CODE:
+    if n <= 127:
         raise ValueError(
-            f"n = {n} terlalu kecil. Untuk huruf A-Z (kode 01-26) butuh n > {MAX_CODE}, "
+            f"n = {n} terlalu kecil. Untuk kode ASCII (0-127) butuh n > 127, "
             "gunakan p dan q yang lebih besar."
         )
     if e is None:
@@ -95,45 +90,28 @@ def euclid_steps(e, phi):
     return rows, old_r, old_s  # old_r = gcd, old_s = koefisien e
 
 
-def max_block_value(k):
-    """
-    Nilai blok terbesar yang mungkin muncul untuk blok k digit.
-    k genap: blok pas dengan pasangan huruf -> paling besar 2626...26.
-    k ganjil: blok bisa dimulai di tengah pasangan -> paling besar 9 lalu 2626...26
-    (mis. k = 3 -> 926).
-    """
-    pairs = "26" * (k // 2)
-    return int(pairs) if k % 2 == 0 else int("9" + pairs)
-
-
-def valid_block_sizes(n, max_k=8):
-    """Ukuran blok k (digit) yang valid: nilai blok terbesar harus < n."""
-    return [k for k in range(2, max_k + 1) if max_block_value(k) < n]
-
-
-def clean_text(text):
-    """Buang spasi/baris baru, ubah ke huruf besar, pastikan hanya A-Z."""
-    cleaned = "".join(text.split()).upper()
-    for ch in cleaned:
-        if not ("A" <= ch <= "Z"):
-            raise ValueError(
-                f"Karakter '{ch}' tidak valid. Hanya huruf A-Z yang boleh dipakai "
-                "(spasi diabaikan, huruf kecil otomatis jadi besar)."
-            )
-    return cleaned
+def valid_block_sizes(n, max_k=6):
+    """Ukuran blok k (digit) yang valid: nilai blok terbesar 10^k - 1 harus < n."""
+    return [k for k in range(2, max_k + 1) if 10 ** k <= n]
 
 
 def encrypt_blocks(text, e, n, k):
     """
-    Tiap huruf -> kode 2 digit (A=01..Z=26), disambung, dipisah per k digit,
-    tiap blok dienkripsi. Return (letters, codes, digits, pad, rows),
+    Tiap karakter -> kode ASCII 3 digit, disambung, dipisah per k digit,
+    tiap blok dienkripsi. Return (codes, digits, pad, rows),
     rows = list of (blok_str, m, cipher).
     """
-    letters = clean_text(text)
-    if not letters:
-        raise ValueError("Plaintext tidak berisi huruf A-Z.")
-    codes = [ord(ch) - 64 for ch in letters]
-    digits = "".join(f"{c:02d}" for c in codes)
+    codes = []
+    for ch in text:
+        code = ord(ch)
+        if code > 127:
+            raise ValueError(f"Karakter '{ch}' bukan ASCII (0-127).")
+        if code == 0:
+            raise ValueError(
+                "Karakter NUL (kode 0) tidak didukung karena dipakai sebagai pengisi."
+            )
+        codes.append(code)
+    digits = "".join(f"{c:03d}" for c in codes)
     pad = (-len(digits)) % k
     padded = digits + "0" * pad
     rows = []
@@ -141,13 +119,13 @@ def encrypt_blocks(text, e, n, k):
         blok = padded[i:i + k]
         m = int(blok)
         rows.append((blok, m, pow(m, e, n)))
-    return letters, codes, digits, pad, rows
+    return codes, digits, pad, rows
 
 
 def decrypt_blocks(cipher, d, n, k):
     """
     Dekripsi tiap blok, isi nol di kiri sampai k digit, sambung,
-    lalu baca per 2 digit sebagai kode huruf (01-26).
+    lalu baca per 3 digit sebagai kode ASCII.
     Return (rows, digits, codes, plaintext), rows = list of (c, m, blok_str).
     """
     rows, digits = [], ""
@@ -163,38 +141,22 @@ def decrypt_blocks(cipher, d, n, k):
         blok = str(m).zfill(k)
         rows.append((c, m, blok))
         digits += blok
-    codes = [int(digits[i:i + 2]) for i in range(0, len(digits) // 2 * 2, 2)]  # sisa <2 digit = pengisi
-    while codes and codes[-1] == 0:                # buang kode 00 pengisi
+    codes = []
+    for i in range(0, len(digits) // 3 * 3, 3):   # sisa <3 digit = pengisi
+        code = int(digits[i:i + 3])
+        if code > 127:
+            raise ValueError("Hasil bukan kode ASCII, kunci atau ukuran blok tidak cocok.")
+        codes.append(code)
+    while codes and codes[-1] == 0:                # buang kode 000 pengisi
         codes.pop()
-    if any(c < 1 or c > MAX_CODE for c in codes):
-        raise ValueError("Hasil bukan kode huruf 01-26, kunci atau ukuran blok tidak cocok.")
-    plain = "".join(chr(c + 64) for c in codes)
+    plain = "".join(chr(c) for c in codes)
     return rows, digits, codes, plain
-
-
-def hash_mod(msg, n):
-    """Hash SHA-256 pesan, lalu direduksi mod n agar bisa dipakai di RSA kecil."""
-    digest = hashlib.sha256(msg.encode("utf-8")).hexdigest()
-    return digest, int(digest, 16) % n
-
-
-def sign_message(msg, d, n):
-    """Tanda tangan: s = h^d mod n (h = hash pesan mod n). Pakai kunci privat."""
-    digest, h = hash_mod(msg, n)
-    return digest, h, pow(h, d, n)
-
-
-def verify_signature(msg, sgn, e, n):
-    """Verifikasi: v = s^e mod n harus sama dengan h = hash pesan mod n."""
-    digest, h = hash_mod(msg, n)
-    v = pow(sgn, e, n)
-    return digest, h, v, v == h
 
 
 # ---------------- Tampilan ----------------
 # Palet kafe: cokelat tua, cokelat susu, krim, kuning mentega, hijau daun
 st.set_page_config(
-    page_title="Kalkulator RSA 26 Huruf",
+    page_title="Kalkulator RSA",
     page_icon="🥐",
     layout="centered",
     initial_sidebar_state="collapsed",
@@ -451,11 +413,6 @@ div[data-testid="stVerticalBlockBorderWrapper"] div[data-testid="stVerticalBlock
 .result-box.dec { background: #f1f4d6; border-color: var(--leaf); box-shadow: 3px 4px 0 var(--leaf); }
 .result-box.dec .result-title { color: var(--leaf-dark); }
 
-.result-box.good { background: #f1f4d6; border-color: var(--leaf); box-shadow: 3px 4px 0 var(--leaf); }
-.result-box.good .result-title { color: var(--leaf-dark); }
-.result-box.bad { background: #fde0d6; border-color: #c4623f; box-shadow: 3px 4px 0 #c4623f; }
-.result-box.bad .result-title { color: #9a2f12; }
-
 /* ===== Tabel ===== */
 .tbl-wrap {
     max-height: 300px; overflow-y: auto; margin-top: 10px; border-radius: 16px;
@@ -609,7 +566,7 @@ def block_size_picker(n, key):
     """Pilihan ukuran blok (digit) yang valid untuk n."""
     sizes = valid_block_sizes(n)
     if st.session_state.get(key) not in sizes:
-        st.session_state[key] = 4 if 4 in sizes else sizes[0]
+        st.session_state[key] = 3 if 3 in sizes else sizes[0]
     k = st.radio(
         "Pesan dipisah menjadi blok berapa digit?",
         sizes,
@@ -618,8 +575,8 @@ def block_size_picker(n, key):
         key=key,
     )
     st.caption(
-        f"Nilai tiap blok harus lebih kecil dari n = {n}. Blok k digit bisa bernilai sampai "
-        f"{max_block_value(sizes[-1])} (untuk k = {sizes[-1]}), jadi ukuran blok maksimal {sizes[-1]} digit. "
+        f"Nilai blok terbesar ({10 ** k - 1}) harus lebih kecil dari n = {n}, "
+        f"jadi untuk n ini ukuran blok maksimal {sizes[-1]} digit. "
         "Ukuran blok yang sama harus dipakai saat enkripsi dan dekripsi."
     )
     return k
@@ -640,8 +597,7 @@ def render_key_generation(p, q, e_input, n, phi, e, d):
         step_box(
             "Langkah 2 - Hitung n",
             f"n = p &times; q = {p} &times; {q} = <b>{n}</b>",
-            f'Syarat huruf A-Z (kode 01-26): n &gt; {MAX_CODE} &rarr; {n} &gt; {MAX_CODE} '
-            '<span class="ok">Terpenuhi</span>',
+            f'Syarat ASCII: n &gt; 127 &rarr; {n} &gt; 127 <span class="ok">Terpenuhi</span>',
             "s2",
         ),
         unsafe_allow_html=True,
@@ -724,13 +680,13 @@ def render_enc_result(r):
 
     section("Pemisahan Blok")
     k, rows, pad = r["k"], r["rows"], r["pad"]
-    huruf_kode = " ".join(f"{ch}={c:02d}" for ch, c in zip(r["letters"], r["codes"]))
+    kode_str = " ".join(f"{c:03d}" for c in r["codes"])
     blok_str = " | ".join(x[0] for x in rows)
     note = f"Blok terakhir ditambah {pad} angka 0 di belakang agar genap {k} digit." if pad else ""
     st.markdown(
         step_box(
             f"Pemisahan blok ({k} digit)",
-            f"Huruf &rarr; kode (A=01 ... Z=26): {huruf_kode}<br>"
+            f"Kode ASCII (3 digit): {kode_str}<br>"
             f"Digit disambung: {r['digits']}<br>"
             f"Dipisah per {k} digit: {blok_str}",
             note,
@@ -765,14 +721,13 @@ def render_dec_result(r):
     )
     section("Penyambungan Blok")
     codes, digits = r["codes"], r["digits"]
-    kode_str = " ".join(f"{c:02d}" for c in codes)
-    huruf_str = " ".join(chr(c + 64) for c in codes)
-    usable = len(codes) * 2
+    kode_str = " ".join(f"{c:03d}" for c in codes)
+    usable = len(codes) * 3
     note = f"{len(digits) - usable} digit pengisi di akhir dibuang." if len(digits) > usable else ""
     st.markdown(
         step_box(
-            "Blok disambung lalu dibaca per 2 digit",
-            f"Digit disambung: {digits}<br>Kode huruf: {kode_str}<br>Huruf: {huruf_str}",
+            "Blok disambung lalu dibaca per 3 digit",
+            f"Digit disambung: {digits}<br>Kode ASCII: {kode_str}",
             note,
             "s2",
         ),
@@ -802,20 +757,20 @@ def page_enkripsi():
         st.error(str(ex))
         keys_ok = False
 
-    plain = st.text_area("Plaintext (huruf A-Z saja, spasi diabaikan)", height=120, key="plain",
+    plain = st.text_area("Plaintext (karakter ASCII)", height=120, key="plain",
                          placeholder="Ketik pesan rahasiamu di sini...")
 
     if keys_ok:
         k = block_size_picker(n, "enc_blok")
         if st.button("Enkripsi", key="btn_enc"):
-            if not plain.strip():
+            if not plain:
                 st.warning("Isi plaintext dulu.")
             else:
                 try:
-                    letters, codes, digits, pad, rows = encrypt_blocks(plain, e, n, k)
+                    codes, digits, pad, rows = encrypt_blocks(plain, e, n, k)
                     st.session_state["enc_result"] = {
                         "p": p, "q": q, "e_input": e_input, "n": n, "phi": phi,
-                        "e": e, "d": d, "k": k, "plain": plain, "letters": letters,
+                        "e": e, "d": d, "k": k, "plain": plain,
                         "codes": codes, "digits": digits, "pad": pad, "rows": rows,
                         "cipher_out": " ".join(str(x[2]) for x in rows),
                         "sig": (p, q, e_input, plain, k),
@@ -847,8 +802,8 @@ def page_dekripsi():
     cur_sig = None
     if d is None or n is None:
         st.info("Isi d dan n terlebih dahulu.")
-    elif int(n) <= MAX_CODE:
-        st.error(f"n harus lebih besar dari {MAX_CODE} untuk huruf A-Z.")
+    elif int(n) <= 127:
+        st.error("n harus lebih besar dari 127 untuk kode ASCII.")
     else:
         d, n = int(d), int(n)
         k = block_size_picker(n, "dec_blok")
@@ -879,192 +834,23 @@ def page_dekripsi():
         render_dec_result(r)
 
 
-# ---------------- Tanda Tangan Digital ----------------
-def render_sig_result(r):
-    """Hasil pembuatan tanda tangan (tersimpan di session_state)."""
-    section("Pembangkitan Kunci")
-    with st.expander("Tampilkan / sembunyikan langkah pembangkitan kunci"):
-        render_key_generation(r["p"], r["q"], r["e_input"], r["n"], r["phi"], r["e"], r["d"])
-    st.markdown(
-        key_card("k-pub", "Kunci Publik (e, n) - dibagikan untuk verifikasi", f"({r['e']}, {r['n']})")
-        + key_card("k-prv", "Kunci Privat (d, n) - dirahasiakan, dipakai menandatangani",
-                   f"({r['d']}, {r['n']})"),
-        unsafe_allow_html=True,
-    )
-    section("Proses Tanda Tangan")
-    st.markdown(
-        step_box("Langkah 1 - Hash pesan dengan SHA-256", f"H(pesan) = {r['digest']}",
-                 "Hash membuat pesan sepanjang apa pun menjadi sidik jari 256 bit."),
-        unsafe_allow_html=True,
-    )
-    st.markdown(
-        step_box("Langkah 2 - Kecilkan hash agar &lt; n", f"h = H(pesan) mod {r['n']} = <b>{r['h']}</b>",
-                 "Hash 256 bit lebih besar dari n kecil, jadi diambil sisa baginya.", "s2"),
-        unsafe_allow_html=True,
-    )
-    st.markdown(
-        step_box("Langkah 3 - Tanda tangani dengan kunci privat",
-                 f"s = h<sup>d</sup> mod n = {r['h']}<sup>{r['d']}</sup> mod {r['n']} = <b>{r['s']}</b>",
-                 css="s3"),
-        unsafe_allow_html=True,
-    )
-    section("Hasil")
-    st.markdown(result_box("Tanda tangan digital (s)", str(r["s"]), "dec"), unsafe_allow_html=True)
-    st.caption(
-        f"Kirim pesan, tanda tangan s, dan kunci publik (e, n) = ({r['e']}, {r['n']}) "
-        "ke penerima. Penerima memakai tab verifikasi untuk mengecek keasliannya."
-    )
-
-
-def render_ver_result(r):
-    """Hasil verifikasi tanda tangan."""
-    section("Proses Verifikasi")
-    st.markdown(
-        step_box("Langkah 1 - Hash pesan dengan SHA-256", f"H(pesan) = {r['digest']}"),
-        unsafe_allow_html=True,
-    )
-    st.markdown(
-        step_box("Langkah 2 - Kecilkan hash agar &lt; n", f"h = H(pesan) mod {r['n']} = <b>{r['h']}</b>",
-                 css="s2"),
-        unsafe_allow_html=True,
-    )
-    st.markdown(
-        step_box("Langkah 3 - Buka tanda tangan dengan kunci publik",
-                 f"v = s<sup>e</sup> mod n = {r['s']}<sup>{r['e']}</sup> mod {r['n']} = <b>{r['v']}</b>",
-                 css="s3"),
-        unsafe_allow_html=True,
-    )
-    st.markdown(
-        step_box("Langkah 4 - Bandingkan", f"v = h ? &rarr; {r['v']} {'=' if r['ok'] else '&ne;'} {r['h']}",
-                 css="s4"),
-        unsafe_allow_html=True,
-    )
-    section("Hasil")
-    if r["ok"]:
-        st.markdown(
-            result_box("Tanda tangan VALID", "Pesan asli dan ditandatangani oleh pemilik kunci privat "
-                       "yang berpasangan dengan kunci publik ini.", "good"),
-            unsafe_allow_html=True,
-        )
-    else:
-        st.markdown(
-            result_box("Tanda tangan TIDAK VALID", "Pesan sudah diubah, atau tanda tangan / kunci publik "
-                       "(e, n) tidak cocok.", "bad"),
-            unsafe_allow_html=True,
-        )
-
-
-def page_ttd_buat():
-    section("Input Tanda Tangan")
-    col1, col2, col3 = st.columns(3)
-    p = int(col1.number_input("p (prima)", min_value=2, max_value=10**7, value=1009,
-                              step=1, key="sig_p"))
-    q = int(col2.number_input("q (prima)", min_value=2, max_value=10**7, value=1013,
-                              step=1, key="sig_q"))
-    e_input = int(col3.number_input("e (0 = otomatis)", min_value=0, max_value=10**14,
-                                    value=0, step=1, key="sig_e"))
-    keys_ok = True
-    try:
-        n, phi, e, d = generate_keys(p, q, e_input or None)
-    except ValueError as ex:
-        st.error(str(ex))
-        keys_ok = False
-
-    msg = st.text_area("Pesan yang ditandatangani", height=120, key="sig_msg",
-                       placeholder="Ketik pesan yang mau ditandatangani...")
-    if keys_ok and st.button("Tanda tangani", key="btn_sig"):
-        if not msg.strip():
-            st.warning("Isi pesan dulu.")
-        else:
-            digest, h, sgn = sign_message(msg, d, n)
-            st.session_state["sig_result"] = {
-                "p": p, "q": q, "e_input": e_input, "n": n, "phi": phi, "e": e, "d": d,
-                "digest": digest, "h": h, "s": sgn, "chk": (p, q, e_input, msg),
-            }
-    r = st.session_state.get("sig_result")
-    if r:
-        cur = (p, q, e_input, msg) if keys_ok else None
-        if cur != r.get("chk"):
-            st.warning("Hasil di bawah berasal dari input sebelumnya. "
-                       "Tekan Tanda tangani lagi untuk memperbarui.")
-        render_sig_result(r)
-
-
-def page_ttd_verif():
-    section("Input Verifikasi")
-    col1, col2 = st.columns(2)
-    e = col1.number_input("e (kunci publik)", min_value=1, max_value=10**15, value=None,
-                          step=1, placeholder="mis. 3", key="ver_e")
-    n = col2.number_input("n", min_value=1, max_value=10**15, value=None,
-                          step=1, placeholder="mis. 1022117", key="ver_n")
-    sgn = st.number_input("Tanda tangan (s)", min_value=0, max_value=10**15, value=None,
-                          step=1, placeholder="Tempel tanda tangan di sini", key="ver_s")
-    msg = st.text_area("Pesan yang diverifikasi", height=120, key="ver_msg",
-                       placeholder="Tempel pesan yang diterima...")
-    st.caption("Pesan harus sama persis, termasuk spasi dan huruf besar/kecil. "
-               "Coba ubah satu huruf: verifikasi akan gagal.")
-
-    cur = None
-    if e is None or n is None or sgn is None:
-        st.info("Isi e, n, dan tanda tangan terlebih dahulu.")
-    elif int(n) < 2:
-        st.error("n harus lebih besar dari 1.")
-    else:
-        e, n, sgn = int(e), int(n), int(sgn)
-        cur = (e, n, sgn, msg)
-        if st.button("Verifikasi", key="btn_ver"):
-            if not msg.strip():
-                st.warning("Isi pesan dulu.")
-            elif sgn >= n:
-                st.session_state["ver_result"] = None
-                st.error("Tanda tangan harus lebih kecil dari n.")
-            else:
-                digest, h, v, ok = verify_signature(msg, sgn, e, n)
-                st.session_state["ver_result"] = {
-                    "e": e, "n": n, "s": sgn, "digest": digest, "h": h, "v": v,
-                    "ok": ok, "chk": cur,
-                }
-    r = st.session_state.get("ver_result")
-    if r:
-        if cur != r.get("chk"):
-            st.warning("Hasil di bawah berasal dari input sebelumnya. "
-                       "Tekan Verifikasi lagi untuk memperbarui.")
-        render_ver_result(r)
-
-
-def page_tanda_tangan():
-    mode = st.radio("Mode", ["Buat tanda tangan", "Verifikasi tanda tangan"],
-                    horizontal=True, key="sig_mode", label_visibility="collapsed")
-    if mode == "Buat tanda tangan":
-        page_ttd_buat()
-    else:
-        page_ttd_verif()
-
-
 # ---------------- Halaman Tentang ----------------
 def page_tentang():
     section("Cara kerja")
     st.markdown(
         step_box("1. Pesan menjadi angka",
-                 "Tiap huruf diubah ke kode 2 digit (A=01, B=02, ..., Z=26), "
-                 "lalu semua digit disambung."),
+                 "Tiap karakter diubah ke kode ASCII 3 digit, lalu semua digit disambung."),
         unsafe_allow_html=True,
     )
     st.markdown(
         step_box("2. Angka dipecah menjadi blok",
-                 "Digit dipotong per k digit. Nilai tiap blok harus lebih kecil dari n.", css="s2"),
+                 "Digit dipotong per k digit. Nilai blok terbesar harus lebih kecil dari n.", css="s2"),
         unsafe_allow_html=True,
     )
     st.markdown(
         step_box("3. Tiap blok dienkripsi",
                  "c = m<sup>e</sup> mod n dengan kunci publik (e, n). "
                  "Dekripsi memakai m = c<sup>d</sup> mod n dengan kunci privat (d, n).", css="s3"),
-        unsafe_allow_html=True,
-    )
-    st.markdown(
-        step_box("4. Tanda tangan digital",
-                 "Pesan di-hash (SHA-256), lalu s = h<sup>d</sup> mod n dengan kunci privat. "
-                 "Penerima mengecek s<sup>e</sup> mod n = h dengan kunci publik.", css="s4"),
         unsafe_allow_html=True,
     )
     section("Kelompok")
@@ -1078,8 +864,8 @@ def page_tentang():
 # ---------------- Rangka halaman ----------------
 BAND_HTML = """
 <div class="band">
-  <div class="ttl">&epsilon; Kalkulator RSA 26 Huruf &#1079;</div>
-  <div class="sub">Enkripsi dan dekripsi pesan huruf A-Z (A=01 ... Z=26). p dan q kamu tentukan sendiri.</div>
+  <div class="ttl">&epsilon; Kalkulator RSA &#1079;</div>
+  <div class="sub">Enkripsi dan dekripsi pesan dengan kode ASCII. p dan q kamu tentukan sendiri.</div>
   <div class="pills">
     <span class="pill">status: OPEN</span>
     <span class="pill">Jovani (009)</span>
@@ -1104,9 +890,7 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-tab_enc, tab_dec, tab_sig, tab_info = st.tabs(
-    ["👤 Enkripsi", "ℹ️ Dekripsi", "✍️ Tanda Tangan", "☰ Tentang"]
-)
+tab_enc, tab_dec, tab_info = st.tabs(["👤 Enkripsi", "ℹ️ Dekripsi", "☰ Tentang"])
 
 with tab_enc:
     st.markdown(BAND_HTML, unsafe_allow_html=True)
@@ -1117,11 +901,6 @@ with tab_dec:
     st.markdown(BAND_HTML, unsafe_allow_html=True)
     with st.container(border=True):
         page_dekripsi()
-
-with tab_sig:
-    st.markdown(BAND_HTML, unsafe_allow_html=True)
-    with st.container(border=True):
-        page_tanda_tangan()
 
 with tab_info:
     st.markdown(BAND_HTML, unsafe_allow_html=True)
