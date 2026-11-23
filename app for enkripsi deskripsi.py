@@ -464,7 +464,32 @@ div.stButton > button:active { transform: translateY(3px); box-shadow: 0 2px 0 v
 div[data-testid="stExpander"] details {
     background: var(--paper); border: 2px dashed var(--milk); border-radius: 18px;
 }
-div[data-testid="stExpander"] summary p { color: var(--choc-dark); font-weight: 700; }
+
+/* Rapikan header expander agar teks panjang tidak tertimpa ikon/area sebelahnya. */
+div[data-testid="stExpander"] summary {
+    display: flex !important;
+    align-items: center !important;
+    gap: 10px !important;
+    min-height: 48px;
+    padding: 10px 14px !important;
+    white-space: normal !important;
+    overflow: visible !important;
+}
+div[data-testid="stExpander"] summary > div {
+    min-width: 0;
+    flex: 1 1 auto;
+}
+div[data-testid="stExpander"] summary p {
+    color: var(--choc-dark) !important;
+    font-weight: 700;
+    line-height: 1.45 !important;
+    margin: 0 !important;
+    white-space: normal !important;
+    overflow-wrap: anywhere;
+}
+div[data-testid="stExpander"] summary svg {
+    flex: 0 0 auto;
+}
 
 /* ===== Alert ===== */
 div[data-testid="stAlert"] { border-radius: 18px; }
@@ -711,6 +736,19 @@ def render_dec_result(r):
     section("Hasil")
     st.markdown(result_box("Pesan asli (Plaintext)", r["plain_out"], "dec"), unsafe_allow_html=True)
 
+    enc = st.session_state.get("enc_result")
+    if enc and enc["cipher_out"].split() == r["cipher_in"].split():
+        cocok = enc["plain"] == r["plain_out"]
+        st.markdown(
+            step_box(
+                "Perbandingan dengan plaintext saat enkripsi",
+                f"Plaintext enkripsi: {esc(enc['plain'])}<br>Hasil dekripsi: {esc(r['plain_out'])}",
+                f'<span class="ok">{"Sama persis" if cocok else "Berbeda"}</span>',
+                "s3",
+            ),
+            unsafe_allow_html=True,
+        )
+
 
 # ---------------- Halaman Enkripsi ----------------
 def page_enkripsi():
@@ -763,7 +801,31 @@ def page_enkripsi():
 
 
 # ---------------- Halaman Dekripsi ----------------
+def use_last_encryption():
+    r = st.session_state.get("enc_result")
+    if not r:
+        return
+    st.session_state["dec_d"] = r["d"]
+    st.session_state["dec_n"] = r["n"]
+    st.session_state["cipher"] = r["cipher_out"]
+    st.session_state["dec_blok"] = r["k"]
+
+
 def page_dekripsi():
+    enc = st.session_state.get("enc_result")
+    if enc:
+        section("Hasil Enkripsi Terakhir (pembanding)")
+        st.markdown(
+            result_box(
+                "Ciphertext",
+                f"{enc['cipher_out']}\n\nPlaintext asal: {enc['plain']}",
+            )
+            + key_card("k-prv", "Kunci Privat (d, n) dan ukuran blok",
+                       f"({enc['d']}, {enc['n']}) &middot; blok {enc['k']} digit"),
+            unsafe_allow_html=True,
+        )
+        st.button("Pakai data ini untuk dekripsi", key="btn_use", on_click=use_last_encryption)
+
     section("Input Dekripsi")
     col1, col2 = st.columns(2)
     d = col1.number_input("d (kunci privat)", min_value=1, max_value=10**15, value=None,
