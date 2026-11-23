@@ -1,12 +1,4 @@
-"""
-Kalkulator RSA (input p dan q manual) - versi Streamlit
-Tampilan: kartu kafe ala "carrd" (cokelat bergaris, kanopi, tab, pita header).
-Memakai kode ASCII (0-127) untuk tiap karakter pesan.
-Kode ASCII ditulis 3 digit, disambung, lalu dipisah menjadi blok k digit
-(k bisa dipilih: 2, 3, dst.) dan tiap blok diproses dengan RSA.
-Jalankan lokal: streamlit run app.py
-Catatan: untuk edukasi. Jangan dipakai untuk mengamankan data sungguhan.
-"""
+
 from math import gcd, isqrt
 
 import streamlit as st
