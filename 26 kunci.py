@@ -92,17 +92,20 @@ def euclid_steps(e, phi):
     return rows, old_r, old_s  # old_r = gcd, old_s = koefisien e
 
 
-def valid_block_sizes(n, max_k=6):
+def max_block_value(k):
     """
-    Ukuran blok k (digit) yang valid.
-    k = 2: tiap blok hanya berisi satu huruf (maks 26), cukup n > 26.
-    k >= 3: nilai blok terbesar 10^k - 1 harus < n.
+    Nilai blok terbesar yang mungkin muncul untuk blok k digit.
+    k genap: blok pas dengan pasangan huruf -> paling besar 2626...26.
+    k ganjil: blok bisa dimulai di tengah pasangan -> paling besar 9 lalu 2626...26
+    (mis. k = 3 -> 926).
     """
-    sizes = []
-    if n > MAX_CODE:
-        sizes.append(2)
-    sizes += [k for k in range(3, max_k + 1) if 10 ** k <= n]
-    return sizes
+    pairs = "26" * (k // 2)
+    return int(pairs) if k % 2 == 0 else int("9" + pairs)
+
+
+def valid_block_sizes(n, max_k=8):
+    """Ukuran blok k (digit) yang valid: nilai blok terbesar harus < n."""
+    return [k for k in range(2, max_k + 1) if max_block_value(k) < n]
 
 
 def clean_text(text):
@@ -588,8 +591,8 @@ def block_size_picker(n, key):
         key=key,
     )
     st.caption(
-        f"Nilai tiap blok harus lebih kecil dari n = {n}, "
-        f"jadi untuk n ini ukuran blok maksimal {sizes[-1]} digit. "
+        f"Nilai tiap blok harus lebih kecil dari n = {n}. Blok k digit bisa bernilai sampai "
+        f"{max_block_value(sizes[-1])} (untuk k = {sizes[-1]}), jadi ukuran blok maksimal {sizes[-1]} digit. "
         "Ukuran blok yang sama harus dipakai saat enkripsi dan dekripsi."
     )
     return k
