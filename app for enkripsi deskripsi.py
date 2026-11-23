@@ -205,7 +205,7 @@ div[data-testid="collapsedControl"] { display: none !important; }
     box-shadow: 0 0 0 4px #fdf4de, 0 14px 30px rgba(75,45,32,.35);
 }
 [data-testid="stMain"] { overflow-y: auto !important; }
-.stApp h1, .stApp h2, .stApp h3, .stApp p, .stApp label, .stApp span, .stApp li {
+.stApp h1, .stApp h2, .stApp h3, .stApp p, .stApp label, .stApp li {
     font-family: 'Mali', sans-serif;
 }
 
@@ -462,9 +462,34 @@ div.stButton > button:active { transform: translateY(3px); box-shadow: 0 2px 0 v
 
 /* ===== Expander ===== */
 div[data-testid="stExpander"] details {
-    background: var(--paper); border: 2px dashed var(--milk); border-radius: 18px;
+    background: var(--paper);
+    border: 2px dashed var(--milk);
+    border-radius: 18px;
 }
-div[data-testid="stExpander"] summary p { color: var(--choc-dark); font-weight: 700; }
+div[data-testid="stExpander"] summary {
+    display: flex !important;
+    align-items: center !important;
+    gap: 10px !important;
+    padding: 12px 18px !important;
+}
+div[data-testid="stExpander"] summary p {
+    color: var(--choc-dark);
+    font-weight: 700;
+    line-height: 1.4 !important;
+    margin: 0 !important;
+}
+/* Jangan timpa font ikon bawaan Streamlit dengan font teks Mali */
+div[data-testid="stExpander"] [data-testid="stIconMaterial"] {
+    font-family: "Material Symbols Rounded" !important;
+    font-weight: normal !important;
+    font-style: normal !important;
+    font-size: 24px !important;
+    line-height: 1 !important;
+    letter-spacing: normal !important;
+    text-transform: none !important;
+    white-space: nowrap !important;
+    direction: ltr !important;
+}
 
 /* ===== Alert ===== */
 div[data-testid="stAlert"] { border-radius: 18px; }
@@ -645,7 +670,7 @@ def render_key_generation(p, q, e_input, n, phi, e, d):
 def render_enc_result(r):
     """Tampilkan hasil enkripsi yang tersimpan (tidak hilang saat pindah tab)."""
     section("Pembangkitan Kunci")
-    with st.expander("Klik untuk menampilkan / menyembunyikan langkah pembangkitan kunci"):
+    with st.expander("Tampilkan / sembunyikan langkah pembangkitan kunci"):
         render_key_generation(r["p"], r["q"], r["e_input"], r["n"], r["phi"], r["e"], r["d"])
     st.markdown(
         key_card("k-pub", "Kunci Publik (e, n)", f"({r['e']}, {r['n']})")
